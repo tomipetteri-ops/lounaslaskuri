@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Säästölaskuri - Kokonaissäästöt</title>
+    <style>
+        /* Optimoitu Boox Go 7 E-ink -näytölle: korkea kontrasti, selkeät fontit */
+        body {
+            background-color: white;
+            color: black;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .henkilo {
+            margin-bottom: 25px;
+        }
+
+        .label { 
+            font-size: 1.2rem; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .euro { 
+            font-size: 3.2rem; 
+            font-weight: bold; 
+        }
+        
+        .yhteensa-kuukausi {
+            border-top: 3px solid black;
+            padding-top: 15px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+
+        .yhteensa-kuukausi .euro { 
+            font-size: 4.2rem; 
+        }
+
+        .kaikki-yhteensa {
+            border-top: 5px double black;
+            padding-top: 15px;
+            margin-top: 5px;
+        }
+
+        .kaikki-yhteensa .label {
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        .kaikki-yhteensa .euro {
+            font-size: 5.2rem;
+        }
+
+        #status-valo {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            background-color: black;
+            border-radius: 50%;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="henkilo">
+        <div class="label">Paula (tässä kuussa)</div>
+        <div id="paula-saasto" class="euro">0.00 €</div>
+    </div>
+
+    <div class="henkilo">
+        <div class="label">Tomi (tässä kuussa)</div>
+        <div id="tomi-saasto" class="euro">0.00 €</div>
+    </div>
+
+    <div class="yhteensa-kuukausi">
+        <div id="yhteensa-otsikko" class="label">Yhteensä kuussa</div>
+        <div id="yhteensa-saasto" class="euro">0.00 €</div>
+    </div>
+
+    <div class="kaikki-yhteensa">
+        <div class="label">Säästöt yhteensä (2026)</div>
+        <div id="kaikki-saasto" class="euro">0.00 €</div>
+    </div>
+
+    <div id="status-valo"></div>
+
+    <script>
+        // --- ASETUKSET ---
+        
+        const nytHeti = new Date();
+        
+        const kuukaudet = [
+            "Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", 
+            "Toukokuussa", "Kesäkuussa", "Heinäkuussa", "Elokuussa", 
+            "Syyskuussa", "Lokakuussa", "Marraskuussa", "Joulukuussa"
+        ];
+        
+        document.getElementById("yhteensa-otsikko").innerText = "Yhteensä " + kuukaudet[nytHeti.getMonth()];
+
+        // Alkuaika tälle kuukaudelle
+        const alkuaikaKuukausi = new Date(nytHeti.getFullYear(), nytHeti.getMonth(), 1).getTime();
+        
+        // Alkuaika koko vuodelle (projektin alku)
+        const alkuaikaVuosi = new Date(2026, 0, 1).getTime();
+        
+        const paulaKuukausi = 410;
+        const tomiKuukausi = 870;
+
+        const paivitysvaliMs = 60000; // 1 minuutti
+
+        // --- LOGIIKKA ---
+
+        const sekuntiaKuukaudessa = 30 * 24 * 60 * 60;
+        const paulaSekunnissa = paulaKuukausi / sekuntiaKuukaudessa;
+        const tomiSekunnissa = tomiKuukausi / sekuntiaKuukaudessa;
+
+        function paivitaLaskurit() {
+            const nyt = new Date().getTime();
+            
+            // Laskenta kuluvalle kuukaudelle
+            const erotusKuukausi = Math.max(0, (nyt - alkuaikaKuukausi) / 1000);
+            const paulaKertynyt = erotusKuukausi * paulaSekunnissa;
+            const tomiKertynyt = erotusKuukausi * tomiSekunnissa;
+            const yhteensaKuukausi = paulaKertynyt + tomiKertynyt;
+            
+            // Laskenta koko vuodelle
+            const erotusVuosi = Math.max(0, (nyt - alkuaikaVuosi) / 1000);
+            const yhteensaVuosi = erotusVuosi * (paulaSekunnissa + tomiSekunnissa);
+            
+            // Päivitys näytölle
+            document.getElementById("paula-saasto").innerText = paulaKertynyt.toFixed(2) + " €";
+            document.getElementById("tomi-saasto").innerText = tomiKertynyt.toFixed(2) + " €";
+            document.getElementById("yhteensa-saasto").innerText = yhteensaKuukausi.toFixed(2) + " €";
+            document.getElementById("kaikki-saasto").innerText = yhteensaVuosi.toFixed(2) + " €";
+
+            const valo = document.getElementById("status-valo");
+            valo.style.opacity = "1";
+            setTimeout(() => { valo.style.opacity = "0"; }, 1000);
+        }
+
+        setInterval(paivitaLaskurit, paivitysvaliMs);
+        paivitaLaskurit();
+    </script>
+</body>
+</html>
