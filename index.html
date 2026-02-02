@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Säästölaskuri - Kokonaissäästöt</title>
+    <title>Säästölaskuri - Historiahallinta</title>
     <style>
         /* Optimoitu Boox Go 7 E-ink -näytölle: korkea kontrasti, selkeät fontit */
         body {
@@ -98,54 +98,92 @@
     <div id="status-valo"></div>
 
     <script>
-        // --- ASETUKSET ---
-        
-        const nytHeti = new Date();
-        
+        // --- ASETUKSET JA HISTORIA ---
+
+        // Voit lisätä uusia tavoitteita listan loppuun.
+        // Ohjelma laskee automaattisesti edellisen loppumaan, kun uusi alkaa.
+        const paulaHistoria = [
+            { alkaen: "2026-01-01", summa: 410 }
+            // Esimerkki: { alkaen: "2026-04-01", summa: 500 }
+        ];
+
+        const tomiHistoria = [
+            { alkaen: "2026-01-01", summa: 870 }
+        ];
+
+        const paivitysvaliMs = 60000; // 1 minuutti
+
+        // --- APUFUNKTIOT ---
+
         const kuukaudet = [
             "Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", 
             "Toukokuussa", "Kesäkuussa", "Heinäkuussa", "Elokuussa", 
             "Syyskuussa", "Lokakuussa", "Marraskuussa", "Joulukuussa"
         ];
-        
-        document.getElementById("yhteensa-otsikko").innerText = "Yhteensä " + kuukaudet[nytHeti.getMonth()];
 
-        // Alkuaika tälle kuukaudelle
-        const alkuaikaKuukausi = new Date(nytHeti.getFullYear(), nytHeti.getMonth(), 1).getTime();
-        
-        // Alkuaika koko vuodelle (projektin alku)
-        const alkuaikaVuosi = new Date(2026, 0, 1).getTime();
-        
-        const paulaKuukausi = 410;
-        const tomiKuukausi = 870;
+        function getDaysInMonth(date) {
+            return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        }
 
-        const paivitysvaliMs = 60000; // 1 minuutti
+        // Laskee säästökertymän tietylle henkilölle ja aikavälille
+        function laskeHenkiloSaasto(historia, tarkasteluAlku, tarkasteluLoppu) {
+            let total = 0;
+            
+            for (let i = 0; i < historia.length; i++) {
+                const kausi = historia[i];
+                const kausiAlku = new Date(kausi.alkaen).getTime();
+                
+                // Kausi loppuu joko seuraavan alkaen-päivään tai tarkastelun loppuun
+                let kausiLoppu = (i + 1 < historia.length) 
+                    ? new Date(historia[i+1].alkaen).getTime() 
+                    : tarkasteluLoppu;
 
-        // --- LOGIIKKA ---
+                // Lasketaan vain jos kausi osuu tarkasteluvälille
+                const aktiivinenAlku = Math.max(kausiAlku, tarkasteluAlku);
+                const aktiivinenLoppu = Math.min(kausiLoppu, tarkasteluLoppu);
 
-        const sekuntiaKuukaudessa = 30 * 24 * 60 * 60;
-        const paulaSekunnissa = paulaKuukausi / sekuntiaKuukaudessa;
-        const tomiSekunnissa = tomiKuukausi / sekuntiaKuukaudessa;
+                if (aktiivinenLoppu > aktiivinenAlku) {
+                    const sekunnit = (aktiivinenLoppu - aktiivinenAlku) / 1000;
+                    // Käytetään keskiarvoista kuukauden pituutta tarkan sekuntitavoitteen luomiseen
+                    // Tässä käytetään tarkasteluhetken kuukauden päivämäärää tarkkuuden vuoksi
+                    const paivia = getDaysInMonth(new Date(aktiivinenAlku));
+                    const sekuntiaKuukaudessa = paivia * 24 * 60 * 60;
+                    total += sekunnit * (kausi.summa / sekuntiaKuukaudessa);
+                }
+            }
+            return total;
+        }
+
+        // --- PÄIVITYSLOGIIKKA ---
 
         function paivitaLaskurit() {
-            const nyt = new Date().getTime();
+            const nyt = new Date();
+            const nytMs = nyt.getTime();
             
-            // Laskenta kuluvalle kuukaudelle
-            const erotusKuukausi = Math.max(0, (nyt - alkuaikaKuukausi) / 1000);
-            const paulaKertynyt = erotusKuukausi * paulaSekunnissa;
-            const tomiKertynyt = erotusKuukausi * tomiSekunnissa;
-            const yhteensaKuukausi = paulaKertynyt + tomiKertynyt;
+            // Kuluvan kuukauden alku
+            const kuunAlkuMs = new Date(nyt.getFullYear(), nyt.getMonth(), 1).getTime();
             
-            // Laskenta koko vuodelle
-            const erotusVuosi = Math.max(0, (nyt - alkuaikaVuosi) / 1000);
-            const yhteensaVuosi = erotusVuosi * (paulaSekunnissa + tomiSekunnissa);
-            
-            // Päivitys näytölle
-            document.getElementById("paula-saasto").innerText = paulaKertynyt.toFixed(2) + " €";
-            document.getElementById("tomi-saasto").innerText = tomiKertynyt.toFixed(2) + " €";
+            // Vuoden alku
+            const vuodenAlkuMs = new Date(2026, 0, 1).getTime();
+
+            // 1. Laske kuluvan kuukauden säästöt
+            const paulaKuukausi = laskeHenkiloSaasto(paulaHistoria, kuunAlkuMs, nytMs);
+            const tomiKuukausi = laskeHenkiloSaasto(tomiHistoria, kuunAlkuMs, nytMs);
+            const yhteensaKuukausi = paulaKuukausi + tomiKuukausi;
+
+            // 2. Laske koko vuoden säästöt (historia huomioiden)
+            const paulaVuosi = laskeHenkiloSaasto(paulaHistoria, vuodenAlkuMs, nytMs);
+            const tomiVuosi = laskeHenkiloSaasto(tomiHistoria, vuodenAlkuMs, nytMs);
+            const yhteensaVuosi = paulaVuosi + tomiVuosi;
+
+            // 3. Päivitä UI
+            document.getElementById("yhteensa-otsikko").innerText = "Yhteensä " + kuukaudet[nyt.getMonth()];
+            document.getElementById("paula-saasto").innerText = paulaKuukausi.toFixed(2) + " €";
+            document.getElementById("tomi-saasto").innerText = tomiKuukausi.toFixed(2) + " €";
             document.getElementById("yhteensa-saasto").innerText = yhteensaKuukausi.toFixed(2) + " €";
             document.getElementById("kaikki-saasto").innerText = yhteensaVuosi.toFixed(2) + " €";
 
+            // Vilkuta status-valoa
             const valo = document.getElementById("status-valo");
             valo.style.opacity = "1";
             setTimeout(() => { valo.style.opacity = "0"; }, 1000);
