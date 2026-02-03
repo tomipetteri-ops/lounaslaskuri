@@ -20,14 +20,14 @@
             margin: 0;
             text-align: center;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .henkilo { 
-            margin-bottom: 3vh; /* Väli suhteessa näytön korkeuteen */
+            margin-bottom: 3vh; 
         }
 
         .label { 
-            /* Skaalautuu välillä 14px - 24px näytön leveyden mukaan */
             font-size: clamp(0.9rem, 2.5vw, 1.5rem); 
             text-transform: uppercase; 
             font-weight: bold;
@@ -35,7 +35,6 @@
         }
 
         .euro { 
-            /* Skaalautuu välillä 32px - 80px */
             font-size: clamp(2rem, 8vw, 5rem); 
             font-weight: bold; 
             line-height: 1.1;
@@ -55,7 +54,6 @@
         }
 
         .kaikki-yhteensa .euro { 
-            /* Vuosisäästö on kaikista suurin numero */
             font-size: clamp(3rem, 12vw, 8rem); 
         }
 
@@ -66,9 +64,24 @@
             font-size: 0.8rem;
             opacity: 0.5;
         }
+        
+        /* Visuaalinen palaute napautuksesta (pieni piste joka välähtää) */
+        #heartbeat {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 4px;
+            height: 4px;
+            background-color: black;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
     </style>
 </head>
-<body onclick="document.documentElement.requestFullscreen()">
+<body onclick="handleInteraction()">
+
+    <div id="heartbeat"></div>
 
     <div class="henkilo">
         <div class="label">Paula (tässä kuussa)</div>
@@ -93,10 +106,8 @@
     <div id="pvm-info"></div>
 
     <script>
-        // Säästötiedot - Voit muuttaa näitä tarvittaessa
         const paulaHistory = [{ alkaen: "2026-01-01", summa: 410 }];
         const tomiHistory = [{ alkaen: "2026-01-01", summa: 870 }];
-
         const months = ["Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", "Toukokuussa", "Kesäkuussa", "Heinäkuussa", "Elokuussa", "Syyskuussa", "Lokakuussa", "Marraskuussa", "Joulukuussa"];
         
         function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
@@ -134,12 +145,26 @@
             document.getElementById("yhteensa-saasto").innerText = (pM + tM).toFixed(2) + " €";
             document.getElementById("kaikki-saasto").innerText = (pY + tY).toFixed(2) + " €";
             document.getElementById("kuukausi-otsikko").innerText = "Yhteensä " + months[now.getMonth()];
-            
-            // Päivitetään pikkuteksti
-            document.getElementById("pvm-info").innerText = now.toLocaleString('fi-FI');
+            document.getElementById("pvm-info").innerText = "Päivitetty: " + now.toLocaleTimeString('fi-FI');
+
+            // Väläytetään heartbeat-pistettä päivityksen merkiksi
+            const hb = document.getElementById("heartbeat");
+            hb.style.opacity = "1";
+            setTimeout(() => { hb.style.opacity = "0"; }, 500);
         }
 
+        // Pakotetaan päivitys ja koko näyttö klikkauksella
+        function handleInteraction() {
+            update();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        }
+
+        // Suoritetaan päivitys kerran minuutissa
         setInterval(update, 60000);
+        
+        // Ensimmäinen ajo
         update();
     </script>
 </body>
