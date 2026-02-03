@@ -30,34 +30,18 @@
         .kaikki-yhteensa { border-top: 8px double black; padding-top: 2vh; margin-top: 2vh; width: 90%; }
         .kaikki-yhteensa .euro { font-size: clamp(3rem, 12vw, 8rem); }
 
-        /* Testikello - tehty suuremmaksi testausta varten */
+        /* Huomaamaton päivitystieto alareunassa ilman jatkuvaa liikettä */
         #pvm-info {
             position: fixed;
-            bottom: 20px;
-            /* Käytetään clamp-funktiota, jotta kello on iso mutta mahtuu ruudulle */
-            font-size: clamp(1rem, 5vw, 2.5rem);
-            font-weight: bold;
-            opacity: 0.8; /* Nostettu näkyvyyttä */
+            bottom: 15px;
+            font-size: 0.8rem;
+            font-weight: normal;
+            opacity: 0.3; /* Hyvin haalea, jotta ei häiritse tai pala kiinni */
             width: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 5px 0;
-        }
-        
-        #heartbeat {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            background-color: black;
-            border-radius: 50%;
-            opacity: 0;
         }
     </style>
 </head>
 <body onclick="handleInteraction()">
-
-    <div id="heartbeat"></div>
 
     <div class="henkilo">
         <div class="label">Paula (tässä kuussa)</div>
@@ -79,14 +63,14 @@
         <div id="kaikki-saasto" class="euro">...</div>
     </div>
 
-    <!-- Testikello näkyy nyt selkeämmin alareunassa -->
-    <div id="pvm-info">Ladataan kelloa...</div>
+    <!-- Vain pieni ja staattinen aikaleima varmistukseksi -->
+    <div id="pvm-info">Ladataan...</div>
 
     <script>
         // ==========================================
         // ASETUKSET
         // ==========================================
-        const paivitysvaliSekunteina = 1; // Testataan 1 sekunnin välillä
+        const paivitysvaliSekunteina = 60; // Palautettu 60 sekuntiin akun ja näytön säästämiseksi
         
         const paulaHistory = [
             { alkaen: [2026, 0, 1], summa: 410 }
@@ -140,12 +124,8 @@
             document.getElementById("kaikki-saasto").innerText = (pY + tY).toFixed(2) + " €";
             document.getElementById("kuukausi-otsikko").innerText = "Yhteensä " + months[now.getMonth()];
             
-            // Suurennettu kello ja sekunnit
-            document.getElementById("pvm-info").innerText = now.toLocaleTimeString('fi-FI');
-
-            const hb = document.getElementById("heartbeat");
-            hb.style.opacity = "1";
-            setTimeout(() => { hb.style.opacity = "0"; }, 300);
+            // Näytetään vain tunnit ja minuutit, ei sekunteja, jotta teksti ei muutu turhaan
+            document.getElementById("pvm-info").innerText = "Päivitetty: " + now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
         }
 
         function handleInteraction() {
