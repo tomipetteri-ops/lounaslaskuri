@@ -2,7 +2,13 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Mahdollistaa sivun avaamisen sovelluksena ilman selaimen palkkeja -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>Säästölaskuri - Paula & Tomi</title>
     <style>
         /* Optimoitu Boox Go 7 E-ink -näytölle: korkea kontrasti, selkeät fontit */
@@ -17,6 +23,8 @@
             height: 100vh;
             margin: 0;
             text-align: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .henkilo {
@@ -28,28 +36,31 @@
             text-transform: uppercase; 
             letter-spacing: 2px;
             margin-bottom: 2px;
+            font-weight: bold;
         }
 
         .euro { 
-            font-size: 3.2rem; 
+            font-size: 3.5rem; 
             font-weight: bold; 
         }
         
         .yhteensa-kuukausi {
-            border-top: 3px solid black;
+            border-top: 4px solid black;
             padding-top: 15px;
             margin-top: 5px;
             margin-bottom: 20px;
+            width: 90%;
         }
 
         .yhteensa-kuukausi .euro { 
-            font-size: 4.2rem; 
+            font-size: 4.5rem; 
         }
 
         .kaikki-yhteensa {
-            border-top: 5px double black;
+            border-top: 8px double black;
             padding-top: 15px;
             margin-top: 5px;
+            width: 90%;
         }
 
         .kaikki-yhteensa .label {
@@ -58,18 +69,20 @@
         }
 
         .kaikki-yhteensa .euro {
-            font-size: 5.2rem;
+            font-size: 5.5rem;
         }
 
+        /* Pieni päivityspiste alakulmassa, kertoo että koodi raksuttaa */
         #status-valo {
             position: fixed;
             bottom: 10px;
             right: 10px;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background-color: black;
             border-radius: 50%;
             opacity: 0;
+            transition: opacity 0.3s;
         }
     </style>
 </head>
@@ -99,8 +112,8 @@
 
     <script>
         // --- ASETUKSET JA HISTORIA ---
-
-        // Tähän voit lisätä uusia rivejä, jos tavoite muuttuu tulevaisuudessa.
+        
+        // Tähän listataan säästötavoitteet. Jos tavoite muuttuu, lisää uusi rivi.
         const paulaHistoria = [
             { alkaen: "2026-01-01", summa: 410 }
         ];
@@ -109,7 +122,7 @@
             { alkaen: "2026-01-01", summa: 870 }
         ];
 
-        const paivitysvaliMs = 60000; // Päivitys minuutin välein
+        const paivitysvaliMs = 60000; // Päivitys kerran minuutissa (säästää akkua)
 
         // --- APUFUNKTIOT ---
 
@@ -123,6 +136,7 @@
             return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
         }
 
+        // Laskee säästökertymän huomioiden mahdolliset tavoitemuutokset historiassa
         function laskeHenkiloSaasto(historia, tarkasteluAlku, tarkasteluLoppu) {
             let total = 0;
             
@@ -130,6 +144,7 @@
                 const kausi = historia[i];
                 const kausiAlku = new Date(kausi.alkaen).getTime();
                 
+                // Kausi loppuu joko seuraavan alkaen-päivään tai tarkastelun loppuun
                 let kausiLoppu = (i + 1 < historia.length) 
                     ? new Date(historia[i+1].alkaen).getTime() 
                     : tarkasteluLoppu;
@@ -153,33 +168,32 @@
             const nyt = new Date();
             const nytMs = nyt.getTime();
             
+            // Lasketaan tämän kuukauden alku ja vuoden alku
             const kuunAlkuMs = new Date(nyt.getFullYear(), nyt.getMonth(), 1).getTime();
             const vuodenAlkuMs = new Date(2026, 0, 1).getTime();
 
-            const paulaKertynyt = laskeHenkiloSaasto(paulaHistoria, kuunAlkuMs, nytMs);
-            const tomiKertynyt = laskeHenkiloSaasto(tomiHistoria, kuunAlkuMs, nytMs);
-            const yhteensaKuukausi = paulaKertynyt + tomiKertynyt;
+            // Lasketaan summat
+            const pK = laskeHenkiloSaasto(paulaHistoria, kuunAlkuMs, nytMs);
+            const tK = laskeHenkiloSaasto(tomiHistoria, kuunAlkuMs, nytMs);
+            const pV = laskeHenkiloSaasto(paulaHistoria, vuodenAlkuMs, nytMs);
+            const tV = laskeHenkiloSaasto(tomiHistoria, vuodenAlkuMs, nytMs);
 
-            const paulaVuosi = laskeHenkiloSaasto(paulaHistoria, vuodenAlkuMs, nytMs);
-            const tomiVuosi = laskeHenkiloSaasto(tomiHistoria, vuodenAlkuMs, nytMs);
-            const yhteensaVuosi = paulaVuosi + tomiVuosi;
-
-            // Päivitys ruudulle
+            // Päivitetään tekstielementit
             document.getElementById("yhteensa-otsikko").innerText = "Yhteensä " + kuukaudet[nyt.getMonth()];
-            document.getElementById("paula-saasto").innerText = paulaKertynyt.toFixed(2) + " €";
-            document.getElementById("tomi-saasto").innerText = tomiKertynyt.toFixed(2) + " €";
-            document.getElementById("yhteensa-saasto").innerText = yhteensaKuukausi.toFixed(2) + " €";
-            document.getElementById("kaikki-saasto").innerText = yhteensaVuosi.toFixed(2) + " €";
+            document.getElementById("paula-saasto").innerText = pK.toFixed(2) + " €";
+            document.getElementById("tomi-saasto").innerText = tK.toFixed(2) + " €";
+            document.getElementById("yhteensa-saasto").innerText = (pK + tK).toFixed(2) + " €";
+            document.getElementById("kaikki-saasto").innerText = (pV + tV).toFixed(2) + " €";
 
+            // Väläytetään pientä status-pistettä päivityksen merkiksi
             const valo = document.getElementById("status-valo");
             valo.style.opacity = "1";
             setTimeout(() => { valo.style.opacity = "0"; }, 1000);
         }
 
+        // Käynnistys
         setInterval(paivitaLaskurit, paivitysvaliMs);
         paivitaLaskurit();
     </script>
 </body>
 </html>
-
-
