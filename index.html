@@ -7,7 +7,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>Lounaslaskuri</title>
     <style>
-        /* Dynaaminen skaalaus E-ink-näytölle */
         body {
             background-color: white;
             color: black;
@@ -21,61 +20,38 @@
             text-align: center;
             overflow: hidden;
             cursor: pointer;
+            user-select: none;
         }
 
-        .henkilo { 
-            margin-bottom: 3vh; 
-        }
+        .henkilo { margin-bottom: 3vh; }
+        .label { font-size: clamp(0.9rem, 2.5vw, 1.5rem); text-transform: uppercase; font-weight: bold; letter-spacing: 0.1em; }
+        .euro { font-size: clamp(2rem, 8vw, 5rem); font-weight: bold; line-height: 1.1; }
+        .yhteensa-kuukausi { border-top: 4px solid black; padding-top: 2vh; width: 90%; }
+        .kaikki-yhteensa { border-top: 8px double black; padding-top: 2vh; margin-top: 2vh; width: 90%; }
+        .kaikki-yhteensa .euro { font-size: clamp(3rem, 12vw, 8rem); }
 
-        .label { 
-            font-size: clamp(0.9rem, 2.5vw, 1.5rem); 
-            text-transform: uppercase; 
-            font-weight: bold;
-            letter-spacing: 0.1em;
-        }
-
-        .euro { 
-            font-size: clamp(2rem, 8vw, 5rem); 
-            font-weight: bold; 
-            line-height: 1.1;
-        }
-
-        .yhteensa-kuukausi { 
-            border-top: 4px solid black; 
-            padding-top: 2vh; 
-            width: 90%; 
-        }
-
-        .kaikki-yhteensa { 
-            border-top: 8px double black; 
-            padding-top: 2vh; 
-            margin-top: 2vh; 
-            width: 90%; 
-        }
-
-        .kaikki-yhteensa .euro { 
-            font-size: clamp(3rem, 12vw, 8rem); 
-        }
-
-        /* Pieni infoteksti alareunassa */
+        /* Testikello - tehty suuremmaksi testausta varten */
         #pvm-info {
             position: fixed;
-            bottom: 10px;
-            font-size: 0.8rem;
-            opacity: 0.5;
+            bottom: 20px;
+            /* Käytetään clamp-funktiota, jotta kello on iso mutta mahtuu ruudulle */
+            font-size: clamp(1rem, 5vw, 2.5rem);
+            font-weight: bold;
+            opacity: 0.8; /* Nostettu näkyvyyttä */
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px 0;
         }
         
-        /* Visuaalinen palaute napautuksesta (pieni piste joka välähtää) */
         #heartbeat {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 4px;
-            height: 4px;
+            top: 15px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
             background-color: black;
             border-radius: 50%;
             opacity: 0;
-            transition: opacity 0.2s;
         }
     </style>
 </head>
@@ -85,64 +61,65 @@
 
     <div class="henkilo">
         <div class="label">Paula (tässä kuussa)</div>
-        <div id="paula-saasto" class="euro">0.00 €</div>
+        <div id="paula-saasto" class="euro">...</div>
     </div>
 
     <div class="henkilo">
         <div class="label">Tomi (tässä kuussa)</div>
-        <div id="tomi-saasto" class="euro">0.00 €</div>
+        <div id="tomi-saasto" class="euro">...</div>
     </div>
 
     <div class="yhteensa-kuukausi">
         <div id="kuukausi-otsikko" class="label">Yhteensä</div>
-        <div id="yhteensa-saasto" class="euro">0.00 €</div>
+        <div id="yhteensa-saasto" class="euro">...</div>
     </div>
 
     <div class="kaikki-yhteensa">
         <div class="label">Säästöt 2026</div>
-        <div id="kaikki-saasto" class="euro">0.00 €</div>
+        <div id="kaikki-saasto" class="euro">...</div>
     </div>
 
-    <div id="pvm-info"></div>
+    <!-- Testikello näkyy nyt selkeämmin alareunassa -->
+    <div id="pvm-info">Ladataan kelloa...</div>
 
     <script>
         // ==========================================
-        // ASETUKSET - MUUTA NÄITÄ TARVITTAESSA
+        // ASETUKSET
         // ==========================================
-        const paivitysvaliSekunteina = 60; // Kuinka usein luvut päivittyvät
+        const paivitysvaliSekunteina = 1; // Testataan 1 sekunnin välillä
         
-        // ESIMERKKI: Jos säästösumma muuttuu esim. helmikuun alusta, 
-        // lisätään listaan uusi rivi pilkun jälkeen.
         const paulaHistory = [
-            { alkaen: "2026-01-01", summa: 410 }, // Tammikuun summa
-            { alkaen: "2026-02-01", summa: 410 }  // Uusi summa helmikuun alusta lähtien
+            { alkaen: [2026, 0, 1], summa: 410 }
         ];
 
         const tomiHistory = [
-            { alkaen: "2026-01-01", summa: 870 }
+            { alkaen: [2026, 0, 1], summa: 870 }
         ];
 
-        const vuosiAlku = "2026-01-01";
+        const vuosiAlku = [2026, 0, 1];
         // ==========================================
 
         const months = ["Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", "Toukokuussa", "Kesäkuussa", "Heinäkuussa", "Elokuussa", "Syyskuussa", "Lokakuussa", "Marraskuussa", "Joulukuussa"];
         
+        function parseDate(arr) { return new Date(arr[0], arr[1], arr[2]).getTime(); }
         function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
 
         function calculateSavings(history, start, end) {
             let total = 0;
-            for (let i = 0; i < history.length; i++) {
-                const entry = history[i];
-                const entryStart = new Date(entry.alkaen).getTime();
-                let entryEnd = (i + 1 < history.length) ? new Date(history[i+1].alkaen).getTime() : end;
-                const activeStart = Math.max(entryStart, start);
-                const activeEnd = Math.min(entryEnd, end);
-                if (activeEnd > activeStart) {
-                    const seconds = (activeEnd - activeStart) / 1000;
-                    const days = getDaysInMonth(new Date(activeStart));
-                    total += seconds * (entry.summa / (days * 24 * 60 * 60));
+            try {
+                for (let i = 0; i < history.length; i++) {
+                    const entry = history[i];
+                    const entryStart = parseDate(entry.alkaen);
+                    let entryEnd = (i + 1 < history.length) ? parseDate(history[i+1].alkaen) : end;
+                    const activeStart = Math.max(entryStart, start);
+                    const activeEnd = Math.min(entryEnd, end);
+                    if (activeEnd > activeStart) {
+                        const seconds = (activeEnd - activeStart) / 1000;
+                        const days = getDaysInMonth(new Date(activeStart));
+                        total += seconds * (entry.summa / (days * 24 * 60 * 60));
+                    }
                 }
-            }
+            } catch (e) { console.error("Virhe laskennassa:", e); }
             return total;
         }
 
@@ -150,7 +127,7 @@
             const now = new Date();
             const nowMs = now.getTime();
             const monthStartMs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-            const yearStartMs = new Date(vuosiAlku).getTime();
+            const yearStartMs = parseDate(vuosiAlku);
 
             const pM = calculateSavings(paulaHistory, monthStartMs, nowMs);
             const tM = calculateSavings(tomiHistory, monthStartMs, nowMs);
@@ -163,11 +140,12 @@
             document.getElementById("kaikki-saasto").innerText = (pY + tY).toFixed(2) + " €";
             document.getElementById("kuukausi-otsikko").innerText = "Yhteensä " + months[now.getMonth()];
             
-            document.getElementById("pvm-info").innerText = "Päivitetty: " + now.toLocaleTimeString('fi-FI');
+            // Suurennettu kello ja sekunnit
+            document.getElementById("pvm-info").innerText = now.toLocaleTimeString('fi-FI');
 
             const hb = document.getElementById("heartbeat");
             hb.style.opacity = "1";
-            setTimeout(() => { hb.style.opacity = "0"; }, 500);
+            setTimeout(() => { hb.style.opacity = "0"; }, 300);
         }
 
         function handleInteraction() {
@@ -177,8 +155,14 @@
             }
         }
 
-        update();
-        setInterval(update, paivitysvaliSekunteina * 1000);
+        window.onload = function() {
+            update();
+            setInterval(update, paivitysvaliSekunteina * 1000);
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") update();
+        });
     </script>
 </body>
 </html>
