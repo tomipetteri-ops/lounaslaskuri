@@ -106,8 +106,25 @@
     <div id="pvm-info"></div>
 
     <script>
-        const paulaHistory = [{ alkaen: "2026-01-01", summa: 410 }];
-        const tomiHistory = [{ alkaen: "2026-01-01", summa: 870 }];
+        // ==========================================
+        // ASETUKSET - MUUTA NÄITÄ TARVITTAESSA
+        // ==========================================
+        const paivitysvaliSekunteina = 60; // Kuinka usein luvut päivittyvät
+        
+        // ESIMERKKI: Jos säästösumma muuttuu esim. helmikuun alusta, 
+        // lisätään listaan uusi rivi pilkun jälkeen.
+        const paulaHistory = [
+            { alkaen: "2026-01-01", summa: 410 }, // Tammikuun summa
+            { alkaen: "2026-02-01", summa: 410 }  // Uusi summa helmikuun alusta lähtien
+        ];
+
+        const tomiHistory = [
+            { alkaen: "2026-01-01", summa: 870 }
+        ];
+
+        const vuosiAlku = "2026-01-01";
+        // ==========================================
+
         const months = ["Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", "Toukokuussa", "Kesäkuussa", "Heinäkuussa", "Elokuussa", "Syyskuussa", "Lokakuussa", "Marraskuussa", "Joulukuussa"];
         
         function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
@@ -133,7 +150,7 @@
             const now = new Date();
             const nowMs = now.getTime();
             const monthStartMs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-            const yearStartMs = new Date(2026, 0, 1).getTime();
+            const yearStartMs = new Date(vuosiAlku).getTime();
 
             const pM = calculateSavings(paulaHistory, monthStartMs, nowMs);
             const tM = calculateSavings(tomiHistory, monthStartMs, nowMs);
@@ -145,15 +162,14 @@
             document.getElementById("yhteensa-saasto").innerText = (pM + tM).toFixed(2) + " €";
             document.getElementById("kaikki-saasto").innerText = (pY + tY).toFixed(2) + " €";
             document.getElementById("kuukausi-otsikko").innerText = "Yhteensä " + months[now.getMonth()];
+            
             document.getElementById("pvm-info").innerText = "Päivitetty: " + now.toLocaleTimeString('fi-FI');
 
-            // Väläytetään heartbeat-pistettä päivityksen merkiksi
             const hb = document.getElementById("heartbeat");
             hb.style.opacity = "1";
             setTimeout(() => { hb.style.opacity = "0"; }, 500);
         }
 
-        // Pakotetaan päivitys ja koko näyttö klikkauksella
         function handleInteraction() {
             update();
             if (!document.fullscreenElement) {
@@ -161,11 +177,8 @@
             }
         }
 
-        // Suoritetaan päivitys kerran minuutissa
-        setInterval(update, 60000);
-        
-        // Ensimmäinen ajo
         update();
+        setInterval(update, paivitysvaliSekunteina * 1000);
     </script>
 </body>
 </html>
