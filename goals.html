@@ -225,7 +225,7 @@
 
         function lisaaRivi(h, teksti, alaTallenna) {
             suljeKaikki();
-            pysaytaDia();
+            if (alaTallenna !== false) pysaytaDia();
             var lista = document.getElementById(h + '-lista');
             var rivi = document.createElement('div');
             rivi.className = 'goals-rivi';
