@@ -239,7 +239,7 @@
             var poista = document.createElement('span');
             poista.className = 'poista';
             poista.innerText = 'x';
-            poista.onclick = function() { rivi.remove(); autoTallenna(h); };
+            poista.onclick = function() { pysaytaDia(); rivi.remove(); autoTallenna(h); };
             rivi.appendChild(span);
             rivi.appendChild(poista);
             lista.appendChild(rivi);
