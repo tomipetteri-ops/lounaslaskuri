@@ -14,8 +14,10 @@
             gap: 25px;
             font-size: 0.85rem;
             border-top: 2px solid black;
+            flex-shrink: 0;
         }
         .kuva-info label { cursor: pointer; }
+        .kuva-info span { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -28,9 +30,10 @@
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
         <div class="kuva-info">
-            <span id="kuva-laskuri">0 / 0</span>
+            <span id="kuva-laskuri">Ladataan...</span>
             <label for="kuva-input">+ Lisää kuvia</label>
-            <input type="file" id="kuva-input" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
+            <input type="file" id="kuva-input-lisaa" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
+            <span onclick="tyhjennaKuvat()">🗑 Tyhjennä</span>
         </div>
     </div>
 
@@ -41,6 +44,60 @@
         const KUVA_AIKA = 10; // sekuntia per kuva
 
         // ==========================================
+        // INDEXEDDB
+        // ==========================================
+        const DB_NIMI = 'lounaslaskuri_kuvat';
+        const DB_VERSIO = 1;
+        const STORE_NIMI = 'kuvat';
+        let db = null;
+
+        function avaaDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NIMI, DB_VERSIO);
+                req.onupgradeneeded = function(e) {
+                    const tietokanta = e.target.result;
+                    if (!tietokanta.objectStoreNames.contains(STORE_NIMI)) {
+                        tietokanta.createObjectStore(STORE_NIMI, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                req.onsuccess = function(e) { resolve(e.target.result); };
+                req.onerror = function(e) { reject(e); };
+            });
+        }
+
+        function tallennaKuvaDB(data) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NIMI, 'readwrite');
+                const store = tx.objectStore(STORE_NIMI);
+                const req = store.add({ data: data });
+                req.onsuccess = () => resolve();
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        function lataaKuvatDB() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NIMI, 'readonly');
+                const store = tx.objectStore(STORE_NIMI);
+                const req = store.getAll();
+                req.onsuccess = (e) => resolve(e.target.result.map(k => k.data));
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        function tyhjennaDB() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NIMI, 'readwrite');
+                const store = tx.objectStore(STORE_NIMI);
+                const req = store.clear();
+                req.onsuccess = () => resolve();
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        // ==========================================
+        // KUVAT
+        // ==========================================
         let kuvat = [];
         let nykyinenKuva = 0;
         let ajastin = null;
@@ -50,8 +107,9 @@
             let ladattu = 0;
             tiedostot.forEach(tiedosto => {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     kuvat.push(e.target.result);
+                    await tallennaKuvaDB(e.target.result);
                     ladattu++;
                     if (ladattu === tiedostot.length) {
                         nykyinenKuva = 0;
@@ -61,6 +119,14 @@
                 };
                 reader.readAsDataURL(tiedosto);
             });
+        }
+
+        async function tyhjennaKuvat() {
+            if (!confirm('Poistetaanko kaikki kuvat?')) return;
+            clearInterval(ajastin);
+            kuvat = [];
+            await tyhjennaDB();
+            paivitaKuva();
         }
 
         function paivitaKuva() {
@@ -77,7 +143,7 @@
             } else {
                 img.style.display = 'none';
                 placeholder.style.display = 'flex';
-                laskuri.innerText = "0 / 0";
+                laskuri.innerText = "Ei kuvia";
             }
         }
 
@@ -93,6 +159,16 @@
                 ajastin = setInterval(seuraavaKuva, KUVA_AIKA * 1000);
             }
         }
+
+        // ==========================================
+        // KÄYNNISTYS — lataa tallennetut kuvat
+        // ==========================================
+        window.onload = async function() {
+            db = await avaaDB();
+            kuvat = await lataaKuvatDB();
+            paivitaKuva();
+            kaynnista();
+        };
     </script>
 </body>
 </html>
