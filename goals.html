@@ -6,7 +6,7 @@
     <title>Goals</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Courier New', Courier, monospace; padding: 8px; }
+        body { font-family: 'Courier New', Courier, monospace; padding: 8px 8px 48px 8px; }
 
         .osio {
             display: flex;
@@ -64,7 +64,6 @@
         }
         .goals-rivi .poista:hover { opacity: 1; }
 
-        /* ALAPALKKI */
         .alapalkki {
             position: fixed;
             bottom: 0;
@@ -76,7 +75,6 @@
             padding: 6px 8px;
             border-top: 1px solid black;
             background: white;
-            position: relative;
         }
 
         .alapalkki-nappi {
@@ -121,7 +119,6 @@
 </head>
 <body>
 
-    <!-- PAULA -->
     <div class="osio">
         <div class="osio-vasen">
             <div class="ascii-taide"> /\_/\
@@ -132,7 +129,6 @@
         <div class="osio-oikea" id="paula-lista"></div>
     </div>
 
-    <!-- TOMI -->
     <div class="osio">
         <div class="osio-vasen">
             <div class="ascii-taide">  o
@@ -143,7 +139,6 @@
         <div class="osio-oikea" id="tomi-lista"></div>
     </div>
 
-    <!-- YHTEISET -->
     <div class="osio">
         <div class="osio-vasen">
             <div class="ascii-taide"> .::.
@@ -155,7 +150,6 @@
         <div class="osio-oikea" id="yhteiset-lista"></div>
     </div>
 
-    <!-- ALAPALKKI -->
     <div class="alapalkki">
         <button class="alapalkki-nappi" onclick="togglePopup('lisaa-popup')">+ lisaa</button>
         <div class="info" id="info"></div>
@@ -177,13 +171,26 @@
 
         <div class="popup" id="tallenna-popup" style="right: 0;">
             <div class="popup-vaihtoehto otsikko" id="tallenna-otsikko"></div>
-            <div class="popup-vaihtoehto" onclick="tallennaGoals()">Tallenna</div>
             <div class="popup-vaihtoehto" onclick="tyhjennaGoals()">Tyhjenna</div>
         </div>
     </div>
 
     <script>
         var valittuHenkilo = null;
+
+        // Pysäytä slideshow kun sivu on aktiivinen
+        function pysaytaDia() {
+            try { window.parent.postMessage('pysayta', '*'); } catch(e) {}
+        }
+
+        // Tallenna automaattisesti
+        function autoTallenna(h) {
+            var lista = document.getElementById(h + '-lista');
+            var rivit = Array.from(lista.querySelectorAll('.goals-rivi span'))
+                .map(function(s) { return s.innerText.trim(); })
+                .filter(function(t) { return t.length > 0; });
+            localStorage.setItem('goals_' + h, JSON.stringify(rivit));
+        }
 
         function togglePopup(id) {
             var popup = document.getElementById(id);
@@ -212,8 +219,9 @@
             document.getElementById('tallenna-popup').classList.add('auki');
         }
 
-        function lisaaRivi(h, teksti) {
+        function lisaaRivi(h, teksti, alaTallenna) {
             suljeKaikki();
+            pysaytaDia();
             var lista = document.getElementById(h + '-lista');
             var rivi = document.createElement('div');
             rivi.className = 'goals-rivi';
@@ -223,27 +231,16 @@
             span.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
             });
+            span.addEventListener('blur', function() { autoTallenna(h); });
             var poista = document.createElement('span');
             poista.className = 'poista';
             poista.innerText = 'x';
-            poista.onclick = function() { rivi.remove(); };
+            poista.onclick = function() { rivi.remove(); autoTallenna(h); };
             rivi.appendChild(span);
             rivi.appendChild(poista);
             lista.appendChild(rivi);
-            if (!teksti) span.focus();
-        }
-
-        function tallennaGoals() {
-            suljeKaikki();
-            var h = valittuHenkilo;
-            var lista = document.getElementById(h + '-lista');
-            var rivit = Array.from(lista.querySelectorAll('.goals-rivi span'))
-                .map(function(s) { return s.innerText.trim(); })
-                .filter(function(t) { return t.length > 0; });
-            localStorage.setItem('goals_' + h, JSON.stringify(rivit));
-            var info = document.getElementById('info');
-            info.innerText = 'Tallennettu';
-            setTimeout(function() { info.innerText = ''; }, 2000);
+            if (!teksti) { span.focus(); }
+            if (alaTallenna !== false && teksti) { /* ladatessa ei tallenneta */ }
         }
 
         function tyhjennaGoals() {
@@ -259,7 +256,9 @@
             ['paula','tomi','yhteiset'].forEach(function(h) {
                 var tallennettu = localStorage.getItem('goals_' + h);
                 if (tallennettu) {
-                    JSON.parse(tallennettu).forEach(function(teksti) { lisaaRivi(h, teksti); });
+                    JSON.parse(tallennettu).forEach(function(teksti) {
+                        lisaaRivi(h, teksti, false);
+                    });
                 }
             });
         }

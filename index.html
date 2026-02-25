@@ -47,9 +47,9 @@
         //  ASETUKSET — muuta näitä
         // ==========================================
         const DIAT = [
-            { tiedosto: 'laskuri.html', aika: 5 },  // sekuntia
-            { tiedosto: 'kuvat.html',   aika: 5 },
-            { tiedosto: 'goals.html',   aika: 5 },
+            { tiedosto: 'laskuri.html', aika: 60 },  // sekuntia
+            { tiedosto: 'kuvat.html',   aika: 30 },
+            { tiedosto: 'goals.html',   aika: 60 },
         ];
         // ==========================================
 
@@ -79,6 +79,18 @@
 
         // Käynnistys
         window.onload = () => naytaDia(0);
+
+        // Kuuntele goals.html:n pysäytysviesti
+        window.addEventListener('message', function(e) {
+            if (e.data === 'pysayta') {
+                clearTimeout(ajastin);
+                // Pysäytä edistymispalkki
+                const palkki = document.getElementById('edistymispalkki');
+                const leveys = palkki.getBoundingClientRect().width / window.innerWidth * 100;
+                palkki.style.transition = 'none';
+                palkki.style.width = leveys + '%';
+            }
+        });
 
         // Fullscreen kun klikataan
         document.addEventListener('click', () => {
