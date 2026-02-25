@@ -89,6 +89,9 @@
                 const leveys = palkki.getBoundingClientRect().width / window.innerWidth * 100;
                 palkki.style.transition = 'none';
                 palkki.style.width = leveys + '%';
+            } else if (e.data === 'kaynnista') {
+                // Jatka diaesitystä seuraavasta diasta
+                naytaDia(nykyinenDia + 1);
             }
         });
 
