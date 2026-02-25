@@ -98,6 +98,19 @@
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") update();
         });
-    </script>
+    
+    window.addEventListener('message', function(event) {
+        if (event.data === 'pysayta') {
+            console.log('Pysäytetään ajastin');
+            if (window.slideTimer) clearInterval(window.slideTimer);
+        } else if (event.data === 'kaynnista') {
+            console.log('Käynnistetään ajastin');
+            // Oletetaan että kello/dia päivittyy handleInteraction tai vastaavalla
+            if (typeof startSlideShow === 'function') startSlideShow();
+            else location.reload(); // Vararatkaisu: päivitä sivu jos funktiota ei löydy
+        }
+    });
+
+</script>
 </body>
 </html>
