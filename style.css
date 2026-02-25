@@ -1,0 +1,165 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: white;
+    color: black;
+    font-family: 'Courier New', Courier, monospace;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* =====================
+   YLEISET ELEMENTIT
+===================== */
+.label {
+    font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+}
+
+.nappi {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 2px solid black;
+    background: white;
+    color: black;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+.nappi:active { background: black; color: white; }
+
+/* =====================
+   LASKURI
+===================== */
+.laskuri-sivu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    padding: 20px;
+    cursor: pointer;
+}
+.henkilo { margin-bottom: 3vh; }
+.euro { font-size: clamp(2rem, 8vw, 5rem); font-weight: bold; line-height: 1.1; }
+.yhteensa-kuukausi { border-top: 4px solid black; padding-top: 2vh; width: 90%; }
+.kaikki-yhteensa { border-top: 8px double black; padding-top: 2vh; margin-top: 2vh; width: 90%; }
+.kaikki-yhteensa .euro { font-size: clamp(3rem, 12vw, 8rem); }
+
+/* =====================
+   KUVAT
+===================== */
+.kuvat-sivu {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+.kuva-nakymä {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.kuva-nakymä img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: grayscale(100%) contrast(1.2);
+}
+.kuva-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    height: 100%;
+    width: 100%;
+}
+.kuva-placeholder label {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: bold;
+    cursor: pointer;
+    border: 3px solid black;
+    padding: 15px 30px;
+}
+#kuva-input { display: none; }
+.kuva-info {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    font-size: 0.85rem;
+    border-top: 2px solid black;
+}
+.kuva-info span, .kuva-info label { cursor: pointer; }
+
+/* =====================
+   GOALS
+===================== */
+.goals-sivu {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+.goals-tabbar {
+    display: flex;
+    border-bottom: 3px solid black;
+    flex-shrink: 0;
+}
+.goals-tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-right: 2px solid black;
+}
+.goals-tab:last-child { border-right: none; }
+.goals-tab.aktiivinen { background: black; color: white; }
+
+.goals-sisalto {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    padding: 20px;
+    gap: 15px;
+    overflow-y: auto;
+}
+.goals-sisalto.aktiivinen { display: flex; }
+
+.goals-lista {
+    flex: 1;
+    min-height: 200px;
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    font-family: 'Courier New', Courier, monospace;
+    border: 2px solid black;
+    padding: 15px;
+    resize: none;
+    background: white;
+    color: black;
+    line-height: 1.8;
+}
+.goals-napit {
+    display: flex;
+    gap: 15px;
+    flex-shrink: 0;
+}
+.tallennettu-info {
+    font-size: 0.75rem;
+    opacity: 0.4;
+    min-height: 20px;
+}

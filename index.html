@@ -5,143 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Lounaslaskuri</title>
+    <title>Paula & Tomi</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background-color: white;
-            color: black;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
+            background: white;
             overflow: hidden;
-            cursor: pointer;
-            user-select: none;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        .henkilo { margin-bottom: 3vh; }
-        .label { font-size: clamp(0.9rem, 2.5vw, 1.5rem); text-transform: uppercase; font-weight: bold; letter-spacing: 0.1em; }
-        .euro { font-size: clamp(2rem, 8vw, 5rem); font-weight: bold; line-height: 1.1; }
-        .yhteensa-kuukausi { border-top: 4px solid black; padding-top: 2vh; width: 90%; }
-        .kaikki-yhteensa { border-top: 8px double black; padding-top: 2vh; margin-top: 2vh; width: 90%; }
-        .kaikki-yhteensa .euro { font-size: clamp(3rem, 12vw, 8rem); }
+        /* Iframe täyttää koko ruudun */
+        #dia-kehys {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
 
-        /* Huomaamaton päivitystieto alareunassa ilman jatkuvaa liikettä */
-        #pvm-info {
+        /* Edistymispalkki alareunassa */
+        #edistymispalkki {
             position: fixed;
-            bottom: 15px;
-            font-size: 0.8rem;
-            font-weight: normal;
-            opacity: 0.3; /* Hyvin haalea, jotta ei häiritse tai pala kiinni */
-            width: 100%;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: black;
+            z-index: 100;
+            transition: none;
         }
     </style>
 </head>
-<body onclick="handleInteraction()">
+<body>
 
-    <div class="henkilo">
-        <div class="label">Paula (tässä kuussa)</div>
-        <div id="paula-saasto" class="euro">...</div>
-    </div>
-
-    <div class="henkilo">
-        <div class="label">Tomi (tässä kuussa)</div>
-        <div id="tomi-saasto" class="euro">...</div>
-    </div>
-
-    <div class="yhteensa-kuukausi">
-        <div id="kuukausi-otsikko" class="label">Yhteensä</div>
-        <div id="yhteensa-saasto" class="euro">...</div>
-    </div>
-
-    <div class="kaikki-yhteensa">
-        <div class="label">Säästöt 2026</div>
-        <div id="kaikki-saasto" class="euro">...</div>
-    </div>
-
-    <!-- Vain pieni ja staattinen aikaleima varmistukseksi -->
-    <div id="pvm-info">Ladataan...</div>
+    <iframe id="dia-kehys" src="laskuri.html"></iframe>
+    <div id="edistymispalkki" style="width:0%"></div>
 
     <script>
         // ==========================================
-        // ASETUKSET
+        //  ASETUKSET — muuta näitä
         // ==========================================
-        const paivitysvaliSekunteina = 60; // Palautettu 60 sekuntiin akun ja näytön säästämiseksi
-        
-        const paulaHistory = [
-            { alkaen: [2026, 0, 1], summa: 410 }
+        const DIAT = [
+            { tiedosto: 'laskuri.html', aika: 60 },  // sekuntia
+            { tiedosto: 'kuvat.html',   aika: 30 },
+            { tiedosto: 'goals.html',   aika: 60 },
         ];
-
-        const tomiHistory = [
-            { alkaen: [2026, 0, 1], summa: 870 }
-        ];
-
-        const vuosiAlku = [2026, 0, 1];
         // ==========================================
 
-        const months = ["Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", "Toukokuussa", "Kesäkuussa", "Heinäkuussa", "Elokuussa", "Syyskuussa", "Lokakuussa", "Marraskuussa", "Joulukuussa"];
-        
-        function parseDate(arr) { return new Date(arr[0], arr[1], arr[2]).getTime(); }
-        function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
+        let nykyinenDia = 0;
+        let ajastin = null;
 
-        function calculateSavings(history, start, end) {
-            let total = 0;
-            try {
-                for (let i = 0; i < history.length; i++) {
-                    const entry = history[i];
-                    const entryStart = parseDate(entry.alkaen);
-                    let entryEnd = (i + 1 < history.length) ? parseDate(history[i+1].alkaen) : end;
-                    const activeStart = Math.max(entryStart, start);
-                    const activeEnd = Math.min(entryEnd, end);
-                    if (activeEnd > activeStart) {
-                        const seconds = (activeEnd - activeStart) / 1000;
-                        const days = getDaysInMonth(new Date(activeStart));
-                        total += seconds * (entry.summa / (days * 24 * 60 * 60));
-                    }
-                }
-            } catch (e) { console.error("Virhe laskennassa:", e); }
-            return total;
+        function naytaDia(indeksi) {
+            nykyinenDia = indeksi % DIAT.length;
+            const dia = DIAT[nykyinenDia];
+
+            // Vaihda iframe
+            document.getElementById('dia-kehys').src = dia.tiedosto;
+
+            // Edistymispalkki
+            const palkki = document.getElementById('edistymispalkki');
+            palkki.style.transition = 'none';
+            palkki.style.width = '0%';
+            setTimeout(() => {
+                palkki.style.transition = 'width ' + dia.aika + 's linear';
+                palkki.style.width = '100%';
+            }, 50);
+
+            // Ajastin seuraavaan diaan
+            clearTimeout(ajastin);
+            ajastin = setTimeout(() => naytaDia(nykyinenDia + 1), dia.aika * 1000);
         }
 
-        function update() {
-            const now = new Date();
-            const nowMs = now.getTime();
-            const monthStartMs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-            const yearStartMs = parseDate(vuosiAlku);
+        // Käynnistys
+        window.onload = () => naytaDia(0);
 
-            const pM = calculateSavings(paulaHistory, monthStartMs, nowMs);
-            const tM = calculateSavings(tomiHistory, monthStartMs, nowMs);
-            const pY = calculateSavings(paulaHistory, yearStartMs, nowMs);
-            const tY = calculateSavings(tomiHistory, yearStartMs, nowMs);
-
-            document.getElementById("paula-saasto").innerText = pM.toFixed(2) + " €";
-            document.getElementById("tomi-saasto").innerText = tM.toFixed(2) + " €";
-            document.getElementById("yhteensa-saasto").innerText = (pM + tM).toFixed(2) + " €";
-            document.getElementById("kaikki-saasto").innerText = (pY + tY).toFixed(2) + " €";
-            document.getElementById("kuukausi-otsikko").innerText = "Yhteensä " + months[now.getMonth()];
-            
-            // Näytetään vain tunnit ja minuutit, ei sekunteja, jotta teksti ei muutu turhaan
-            document.getElementById("pvm-info").innerText = "Päivitetty: " + now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
-        }
-
-        function handleInteraction() {
-            update();
+        // Fullscreen kun klikataan
+        document.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
             }
-        }
-
-        window.onload = function() {
-            update();
-            setInterval(update, paivitysvaliSekunteina * 1000);
-        };
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") update();
         });
     </script>
 </body>

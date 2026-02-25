@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kuvat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="kuvat-sivu">
+        <div class="kuva-nakymä" id="kuva-nakymä">
+            <div class="kuva-placeholder" id="kuva-placeholder">
+                <label for="kuva-input">+ Lisää kuvia</label>
+                <input type="file" id="kuva-input" accept="image/*" multiple onchange="lisaaKuvat(event)">
+            </div>
+            <img id="kuva-img" src="" style="display:none;" alt="Kuva">
+        </div>
+        <div class="kuva-info">
+            <span onclick="edellinenKuva()">← Edellinen</span>
+            <span id="kuva-laskuri">0 / 0</span>
+            <span onclick="seuraavaKuva()">Seuraava →</span>
+            <label for="kuva-input">+ Lisää</label>
+            <input type="file" id="kuva-input-extra" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
+        </div>
+    </div>
+
+    <script>
+        let kuvat = [];
+        let nykyinenKuva = 0;
+
+        function lisaaKuvat(event) {
+            const tiedostot = Array.from(event.target.files);
+            tiedostot.forEach(tiedosto => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    kuvat.push(e.target.result);
+                    paivitaKuva();
+                };
+                reader.readAsDataURL(tiedosto);
+            });
+        }
+
+        function paivitaKuva() {
+            const img = document.getElementById('kuva-img');
+            const placeholder = document.getElementById('kuva-placeholder');
+            const laskuri = document.getElementById('kuva-laskuri');
+
+            if (kuvat.length > 0) {
+                if (nykyinenKuva >= kuvat.length) nykyinenKuva = 0;
+                img.src = kuvat[nykyinenKuva];
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+                laskuri.innerText = (nykyinenKuva + 1) + " / " + kuvat.length;
+            } else {
+                img.style.display = 'none';
+                placeholder.style.display = 'flex';
+                laskuri.innerText = "0 / 0";
+            }
+        }
+
+        function seuraavaKuva() {
+            if (kuvat.length === 0) return;
+            nykyinenKuva = (nykyinenKuva + 1) % kuvat.length;
+            paivitaKuva();
+        }
+
+        function edellinenKuva() {
+            if (kuvat.length === 0) return;
+            nykyinenKuva = (nykyinenKuva - 1 + kuvat.length) % kuvat.length;
+            paivitaKuva();
+        }
+
+        // Ulkoinen kutsu index.html:stä seuraavaan kuvaan
+        window.seuraavaKuvaUlkoa = seuraavaKuva;
+    </script>
+</body>
+</html>

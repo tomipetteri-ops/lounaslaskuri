@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Goals</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="goals-sivu">
+
+        <!-- Välilehtipalkki -->
+        <div class="goals-tabbar">
+            <div class="goals-tab aktiivinen" onclick="vaihdaTab('paula')">♡ Paula</div>
+            <div class="goals-tab" onclick="vaihdaTab('tomi')">♡ Tomi</div>
+            <div class="goals-tab" onclick="vaihdaTab('yhteiset')">♡ Yhdessä</div>
+        </div>
+
+        <!-- Paula -->
+        <div class="goals-sisalto aktiivinen" id="sisalto-paula">
+            <textarea class="goals-lista" id="paula-goals"
+                placeholder="Kirjoita Paulan tavoitteet tähän...&#10;&#10;Yksi tavoite per rivi."></textarea>
+            <div class="goals-napit">
+                <button class="nappi" onclick="tallennaGoals('paula')">Tallenna</button>
+                <button class="nappi" onclick="tyhjennaGoals('paula')">Tyhjennä</button>
+            </div>
+            <div class="tallennettu-info" id="paula-info"></div>
+        </div>
+
+        <!-- Tomi -->
+        <div class="goals-sisalto" id="sisalto-tomi">
+            <textarea class="goals-lista" id="tomi-goals"
+                placeholder="Kirjoita Tomin tavoitteet tähän...&#10;&#10;Yksi tavoite per rivi."></textarea>
+            <div class="goals-napit">
+                <button class="nappi" onclick="tallennaGoals('tomi')">Tallenna</button>
+                <button class="nappi" onclick="tyhjennaGoals('tomi')">Tyhjennä</button>
+            </div>
+            <div class="tallennettu-info" id="tomi-info"></div>
+        </div>
+
+        <!-- Yhteiset -->
+        <div class="goals-sisalto" id="sisalto-yhteiset">
+            <textarea class="goals-lista" id="yhteiset-goals"
+                placeholder="Kirjoita yhteiset tavoitteet tähän...&#10;&#10;Yksi tavoite per rivi."></textarea>
+            <div class="goals-napit">
+                <button class="nappi" onclick="tallennaGoals('yhteiset')">Tallenna</button>
+                <button class="nappi" onclick="tyhjennaGoals('yhteiset')">Tyhjennä</button>
+            </div>
+            <div class="tallennettu-info" id="yhteiset-info"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // VÄLILEHDET
+        // ==========================================
+        function vaihdaTab(henkilö) {
+            // Poista aktiivinen kaikilta
+            document.querySelectorAll('.goals-tab').forEach(t => t.classList.remove('aktiivinen'));
+            document.querySelectorAll('.goals-sisalto').forEach(s => s.classList.remove('aktiivinen'));
+
+            // Aktivoi valittu
+            document.getElementById('sisalto-' + henkilö).classList.add('aktiivinen');
+            const tabit = document.querySelectorAll('.goals-tab');
+            const jarjestys = ['paula', 'tomi', 'yhteiset'];
+            tabit[jarjestys.indexOf(henkilö)].classList.add('aktiivinen');
+        }
+
+        // ==========================================
+        // GOALS — localStorage
+        // ==========================================
+        function lataaGoals() {
+            ['paula', 'tomi', 'yhteiset'].forEach(avain => {
+                const tallennettu = localStorage.getItem('goals_' + avain);
+                if (tallennettu) {
+                    document.getElementById(avain + '-goals').value = tallennettu;
+                }
+            });
+        }
+
+        function tallennaGoals(henkilö) {
+            const teksti = document.getElementById(henkilö + '-goals').value;
+            localStorage.setItem('goals_' + henkilö, teksti);
+            const info = document.getElementById(henkilö + '-info');
+            info.innerText = 'Tallennettu ✓';
+            setTimeout(() => { info.innerText = ''; }, 2000);
+        }
+
+        function tyhjennaGoals(henkilö) {
+            if (confirm('Tyhjennetäänkö ' + henkilö + ' goals?')) {
+                document.getElementById(henkilö + '-goals').value = '';
+                localStorage.removeItem('goals_' + henkilö);
+            }
+        }
+
+        window.onload = lataaGoals;
+    </script>
+</body>
+</html>
