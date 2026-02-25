@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kuvat</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .kuva-info {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            font-size: 0.85rem;
+            border-top: 2px solid black;
+        }
+        .kuva-info label { cursor: pointer; }
+    </style>
 </head>
 <body>
     <div class="kuvat-sivu">
@@ -16,25 +28,36 @@
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
         <div class="kuva-info">
-            <span onclick="edellinenKuva()">← Edellinen</span>
             <span id="kuva-laskuri">0 / 0</span>
-            <span onclick="seuraavaKuva()">Seuraava →</span>
-            <label for="kuva-input">+ Lisää</label>
-            <input type="file" id="kuva-input-extra" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
+            <label for="kuva-input">+ Lisää kuvia</label>
+            <input type="file" id="kuva-input" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
         </div>
     </div>
 
     <script>
+        // ==========================================
+        // ASETUKSET
+        // ==========================================
+        const KUVA_AIKA = 10; // sekuntia per kuva
+
+        // ==========================================
         let kuvat = [];
         let nykyinenKuva = 0;
+        let ajastin = null;
 
         function lisaaKuvat(event) {
             const tiedostot = Array.from(event.target.files);
+            let ladattu = 0;
             tiedostot.forEach(tiedosto => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     kuvat.push(e.target.result);
-                    paivitaKuva();
+                    ladattu++;
+                    if (ladattu === tiedostot.length) {
+                        nykyinenKuva = 0;
+                        paivitaKuva();
+                        kaynnista();
+                    }
                 };
                 reader.readAsDataURL(tiedosto);
             });
@@ -64,14 +87,12 @@
             paivitaKuva();
         }
 
-        function edellinenKuva() {
-            if (kuvat.length === 0) return;
-            nykyinenKuva = (nykyinenKuva - 1 + kuvat.length) % kuvat.length;
-            paivitaKuva();
+        function kaynnista() {
+            clearInterval(ajastin);
+            if (kuvat.length > 1) {
+                ajastin = setInterval(seuraavaKuva, KUVA_AIKA * 1000);
+            }
         }
-
-        // Ulkoinen kutsu index.html:stä seuraavaan kuvaan
-        window.seuraavaKuvaUlkoa = seuraavaKuva;
     </script>
 </body>
 </html>
