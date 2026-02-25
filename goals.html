@@ -6,189 +6,262 @@
     <title>Goals</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        body { overflow: hidden; height: 100vh; }
+        body { font-family: 'Courier New', Courier, monospace; padding: 8px; }
 
-        .goals-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            height: 100vh;
-            width: 100vw;
+        .osio {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
-        .goals-vasen {
+        .osio-vasen {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            border-right: 3px solid black;
-            border-bottom: 2px solid black;
-            padding: 8px;
-            gap: 4px;
+            gap: 3px;
+            flex-shrink: 0;
         }
-        .goals-vasen:last-of-type { border-bottom: none; }
 
         .ascii-taide {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: clamp(0.3rem, 0.9vw, 0.6rem);
+            font-size: clamp(0.35rem, 0.85vw, 0.6rem);
             line-height: 1.1;
-            text-align: center;
             white-space: pre;
         }
 
         .goals-nimi {
-            font-size: clamp(0.7rem, 1.8vw, 1.1rem);
+            font-size: clamp(0.6rem, 1.2vw, 0.8rem);
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            text-align: center;
+            letter-spacing: 0.08em;
         }
 
-        .goals-oikea {
+        .osio-oikea {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            border-bottom: 2px solid black;
-            padding: 8px;
-            gap: 4px;
+            gap: 1px;
+            padding-top: 2px;
         }
-        .goals-oikea:last-of-type { border-bottom: none; }
 
-        .goals-lista {
-            flex: 1;
-            width: 100%;
-            font-size: clamp(0.65rem, 1.4vw, 0.9rem);
+        .goals-rivi {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-bottom: 1px solid #bbb;
+            padding: 2px 0;
+            font-size: clamp(0.6rem, 1.3vw, 0.85rem);
+            min-height: 20px;
+        }
+
+        .goals-rivi span { flex: 1; outline: none; }
+
+        .goals-rivi .poista {
+            cursor: pointer;
+            opacity: 0.2;
+            font-size: 0.6rem;
+        }
+        .goals-rivi .poista:hover { opacity: 1; }
+
+        /* ALAPALKKI */
+        .alapalkki {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-top: 1px solid black;
+            background: white;
+            position: relative;
+        }
+
+        .alapalkki-nappi {
             font-family: 'Courier New', Courier, monospace;
+            font-size: clamp(0.55rem, 1.1vw, 0.75rem);
+            font-weight: bold;
             border: 1px solid black;
-            padding: 6px;
-            resize: none;
             background: white;
             color: black;
-            line-height: 1.6;
+            padding: 3px 10px;
+            cursor: pointer;
         }
+        .alapalkki-nappi:active { background: black; color: white; }
 
-        .goals-napit {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
+        .info { font-size: 0.6rem; opacity: 0.4; flex: 1; }
+
+        .popup {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            border: 1px solid black;
+            background: white;
+            z-index: 10;
+            flex-direction: column;
+            min-width: 120px;
         }
+        .popup.auki { display: flex; }
 
-        .nappi {
+        .popup-vaihtoehto {
             font-family: 'Courier New', Courier, monospace;
             font-size: clamp(0.5rem, 1vw, 0.7rem);
-            font-weight: bold;
-            text-transform: uppercase;
-            border: 1px solid black;
-            background: white;
-            color: black;
-            padding: 3px 6px;
+            padding: 6px 12px;
             cursor: pointer;
-            flex: 1;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
         }
-        .nappi:active { background: black; color: white; }
-
-        .tallennettu-info {
-            font-size: 0.6rem;
-            opacity: 0.4;
-            min-height: 12px;
-            text-align: center;
-        }
+        .popup-vaihtoehto:last-child { border-bottom: none; }
+        .popup-vaihtoehto:hover { background: black; color: white; }
+        .popup-vaihtoehto.otsikko { opacity: 0.4; cursor: default; font-size: 0.55rem; padding: 4px 12px 2px; }
+        .popup-vaihtoehto.otsikko:hover { background: white; color: black; }
     </style>
 </head>
 <body>
-    <div class="goals-grid">
 
-        <!-- RIVI 1 VASEN: Paula + kissa -->
-        <div class="goals-vasen">
-            <div class="ascii-taide"> /\_____/\
-(  o   o  )
-(  =^.^=  )
- (  (Y)  )
-  )     (
- (_)   (_)</div>
+    <!-- PAULA -->
+    <div class="osio">
+        <div class="osio-vasen">
+            <div class="ascii-taide"> /\_/\
+( o.o )
+ > ^ <</div>
             <div class="goals-nimi">Paula</div>
         </div>
+        <div class="osio-oikea" id="paula-lista"></div>
+    </div>
 
-        <!-- RIVI 1 OIKEA: Paulan goals -->
-        <div class="goals-oikea">
-            <textarea class="goals-lista" id="paula-goals"
-                placeholder="Paulan tavoitteet..."></textarea>
-            <div class="goals-napit">
-                <button class="nappi" onclick="tallennaGoals('paula')">Tallenna</button>
-                <button class="nappi" onclick="tyhjennaGoals('paula')">Tyhjennä</button>
-            </div>
-            <div class="tallennettu-info" id="paula-info"></div>
-        </div>
-
-        <!-- RIVI 2 VASEN: Tomi + ukko -->
-        <div class="goals-vasen">
-            <div class="ascii-taide">  _____
- /     \
-| () () |
- \  ^  /
-  |||||
- _|___|_
-(_______)</div>
+    <!-- TOMI -->
+    <div class="osio">
+        <div class="osio-vasen">
+            <div class="ascii-taide">  o
+ /|\
+ / \</div>
             <div class="goals-nimi">Tomi</div>
         </div>
+        <div class="osio-oikea" id="tomi-lista"></div>
+    </div>
 
-        <!-- RIVI 2 OIKEA: Tomin goals -->
-        <div class="goals-oikea">
-            <textarea class="goals-lista" id="tomi-goals"
-                placeholder="Tomin tavoitteet..."></textarea>
-            <div class="goals-napit">
-                <button class="nappi" onclick="tallennaGoals('tomi')">Tallenna</button>
-                <button class="nappi" onclick="tyhjennaGoals('tomi')">Tyhjennä</button>
-            </div>
-            <div class="tallennettu-info" id="tomi-info"></div>
+    <!-- YHTEISET -->
+    <div class="osio">
+        <div class="osio-vasen">
+            <div class="ascii-taide"> .::.
+ ::::
+ '::'
+  ':'</div>
+            <div class="goals-nimi">Yhdessa</div>
+        </div>
+        <div class="osio-oikea" id="yhteiset-lista"></div>
+    </div>
+
+    <!-- ALAPALKKI -->
+    <div class="alapalkki">
+        <button class="alapalkki-nappi" onclick="togglePopup('lisaa-popup')">+ lisaa</button>
+        <div class="info" id="info"></div>
+        <button class="alapalkki-nappi" onclick="togglePopup('toiminto-popup')">&#8943;</button>
+
+        <div class="popup" id="lisaa-popup" style="left: 0;">
+            <div class="popup-vaihtoehto otsikko">Kenelle?</div>
+            <div class="popup-vaihtoehto" onclick="lisaaRivi('paula')">Paula</div>
+            <div class="popup-vaihtoehto" onclick="lisaaRivi('tomi')">Tomi</div>
+            <div class="popup-vaihtoehto" onclick="lisaaRivi('yhteiset')">Yhdessa</div>
         </div>
 
-        <!-- RIVI 3 VASEN: Yhdessä + sydän -->
-        <div class="goals-vasen">
-            <div class="ascii-taide"> .:::. .::.
- :::::::::::
- :::::::::::
- ':::::::::'
-   ':::::'
-     ':'</div>
-            <div class="goals-nimi">Yhdessä</div>
+        <div class="popup" id="toiminto-popup" style="right: 0;">
+            <div class="popup-vaihtoehto otsikko">Kenelle?</div>
+            <div class="popup-vaihtoehto" onclick="naytaToiminnot('paula')">Paula</div>
+            <div class="popup-vaihtoehto" onclick="naytaToiminnot('tomi')">Tomi</div>
+            <div class="popup-vaihtoehto" onclick="naytaToiminnot('yhteiset')">Yhdessa</div>
         </div>
 
-        <!-- RIVI 3 OIKEA: Yhteiset goals -->
-        <div class="goals-oikea">
-            <textarea class="goals-lista" id="yhteiset-goals"
-                placeholder="Yhteiset tavoitteet..."></textarea>
-            <div class="goals-napit">
-                <button class="nappi" onclick="tallennaGoals('yhteiset')">Tallenna</button>
-                <button class="nappi" onclick="tyhjennaGoals('yhteiset')">Tyhjennä</button>
-            </div>
-            <div class="tallennettu-info" id="yhteiset-info"></div>
+        <div class="popup" id="tallenna-popup" style="right: 0;">
+            <div class="popup-vaihtoehto otsikko" id="tallenna-otsikko"></div>
+            <div class="popup-vaihtoehto" onclick="tallennaGoals()">Tallenna</div>
+            <div class="popup-vaihtoehto" onclick="tyhjennaGoals()">Tyhjenna</div>
         </div>
-
     </div>
 
     <script>
-        function lataaGoals() {
-            ['paula', 'tomi', 'yhteiset'].forEach(avain => {
-                const tallennettu = localStorage.getItem('goals_' + avain);
-                if (tallennettu) {
-                    document.getElementById(avain + '-goals').value = tallennettu;
-                }
+        var valittuHenkilo = null;
+
+        function togglePopup(id) {
+            var popup = document.getElementById(id);
+            var onAuki = popup.classList.contains('auki');
+            suljeKaikki();
+            if (!onAuki) popup.classList.add('auki');
+        }
+
+        function suljeKaikki() {
+            ['lisaa-popup','toiminto-popup','tallenna-popup'].forEach(function(id) {
+                document.getElementById(id).classList.remove('auki');
             });
         }
 
-        function tallennaGoals(henkilö) {
-            const teksti = document.getElementById(henkilö + '-goals').value;
-            localStorage.setItem('goals_' + henkilö, teksti);
-            const info = document.getElementById(henkilö + '-info');
-            info.innerText = 'Tallennettu ✓';
-            setTimeout(() => { info.innerText = ''; }, 2000);
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('alapalkki-nappi') &&
+                !e.target.classList.contains('popup-vaihtoehto')) {
+                suljeKaikki();
+            }
+        });
+
+        function naytaToiminnot(h) {
+            valittuHenkilo = h;
+            document.getElementById('tallenna-otsikko').innerText = h.charAt(0).toUpperCase() + h.slice(1);
+            document.getElementById('toiminto-popup').classList.remove('auki');
+            document.getElementById('tallenna-popup').classList.add('auki');
         }
 
-        function tyhjennaGoals(henkilö) {
-            if (confirm('Tyhjennetäänkö ' + henkilö + ' goals?')) {
-                document.getElementById(henkilö + '-goals').value = '';
-                localStorage.removeItem('goals_' + henkilö);
+        function lisaaRivi(h, teksti) {
+            suljeKaikki();
+            var lista = document.getElementById(h + '-lista');
+            var rivi = document.createElement('div');
+            rivi.className = 'goals-rivi';
+            var span = document.createElement('span');
+            span.contentEditable = true;
+            span.innerText = teksti || '';
+            span.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
+            });
+            var poista = document.createElement('span');
+            poista.className = 'poista';
+            poista.innerText = 'x';
+            poista.onclick = function() { rivi.remove(); };
+            rivi.appendChild(span);
+            rivi.appendChild(poista);
+            lista.appendChild(rivi);
+            if (!teksti) span.focus();
+        }
+
+        function tallennaGoals() {
+            suljeKaikki();
+            var h = valittuHenkilo;
+            var lista = document.getElementById(h + '-lista');
+            var rivit = Array.from(lista.querySelectorAll('.goals-rivi span'))
+                .map(function(s) { return s.innerText.trim(); })
+                .filter(function(t) { return t.length > 0; });
+            localStorage.setItem('goals_' + h, JSON.stringify(rivit));
+            var info = document.getElementById('info');
+            info.innerText = 'Tallennettu';
+            setTimeout(function() { info.innerText = ''; }, 2000);
+        }
+
+        function tyhjennaGoals() {
+            suljeKaikki();
+            var h = valittuHenkilo;
+            if (confirm('Tyhjennetaanko ' + h + '?')) {
+                document.getElementById(h + '-lista').innerHTML = '';
+                localStorage.removeItem('goals_' + h);
             }
+        }
+
+        function lataaGoals() {
+            ['paula','tomi','yhteiset'].forEach(function(h) {
+                var tallennettu = localStorage.getItem('goals_' + h);
+                if (tallennettu) {
+                    JSON.parse(tallennettu).forEach(function(teksti) { lisaaRivi(h, teksti); });
+                }
+            });
         }
 
         window.onload = lataaGoals;
