@@ -115,6 +115,7 @@
                         nykyinenKuva = 0;
                         paivitaKuva();
                         kaynnista();
+                        lahetaKuvienAika();
                     }
                 };
                 reader.readAsDataURL(tiedosto);
@@ -127,6 +128,7 @@
             kuvat = [];
             await tyhjennaDB();
             paivitaKuva();
+            lahetaKuvienAika();
         }
 
         function paivitaKuva() {
@@ -151,6 +153,7 @@
             if (kuvat.length === 0) return;
             nykyinenKuva = (nykyinenKuva + 1) % kuvat.length;
             paivitaKuva();
+            lahetaKuvienAika();
         }
 
         function kaynnista() {
@@ -168,7 +171,13 @@
             kuvat = await lataaKuvatDB();
             paivitaKuva();
             kaynnista();
+            lahetaKuvienAika();
         };
-    </script>
+    
+        function lahetaKuvienAika() {
+            const totalTime = kuvat.length * KUVA_AIKA;
+            window.parent.postMessage({ type: 'kuvienAika', aika: totalTime }, '*');
+        }
+</script>
 </body>
 </html>
