@@ -106,7 +106,7 @@
         } else if (event.data === 'kaynnista') {
             console.log('Käynnistetään ajastin');
             // Oletetaan että kello/dia päivittyy handleInteraction tai vastaavalla
-            if (typeof startSlideShow === 'function') startSlideShow();
+            if (typeof handleInteraction === 'function') handleInteraction();
             else location.reload(); // Vararatkaisu: päivitä sivu jos funktiota ei löydy
         }
     });
