@@ -21,7 +21,7 @@
             <div id="yhteensa-saasto" class="euro">...</div>
         </div>
         <div class="kaikki-yhteensa">
-            <div class="label">Säästöt 2026</div>
+            <div class="label">Säästöt <span id="vuosi-otsikko"></span></div>
             <div id="kaikki-saasto" class="euro">...</div>
         </div>
     </div>
@@ -38,7 +38,8 @@
         const tomiHistory = [
             { alkaen: [2026, 0, 1], summa: 870 }
         ];
-        const vuosiAlku = [2026, 0, 1];
+        const nykyinenVuosi = new Date().getFullYear();
+        const vuosiAlku = [nykyinenVuosi, 0, 1];
 
         const months = ["Tammikuussa","Helmikuussa","Maaliskuussa","Huhtikuussa","Toukokuussa",
                         "Kesäkuussa","Heinäkuussa","Elokuussa","Syyskuussa","Lokakuussa",
@@ -55,10 +56,19 @@
                 let entryEnd = (i + 1 < history.length) ? parseDate(history[i+1].alkaen) : end;
                 const activeStart = Math.max(entryStart, start);
                 const activeEnd = Math.min(entryEnd, end);
-                if (activeEnd > activeStart) {
-                    const seconds = (activeEnd - activeStart) / 1000;
-                    const days = getDaysInMonth(new Date(activeStart));
-                    total += seconds * (entry.summa / (days * 24 * 60 * 60));
+                if (activeEnd <= activeStart) continue;
+
+                // Jaa laskenta kuukausittain – käytä kuukauden todellista kestoa (DST-oikea)
+                let current = activeStart;
+                while (current < activeEnd) {
+                    const currentDate = new Date(current);
+                    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getTime();
+                    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+                    const segmentEnd = Math.min(monthEnd + 1, activeEnd);
+                    const segmentMs = segmentEnd - current;
+                    const monthMs = monthEnd + 1 - monthStart;
+                    total += (segmentMs / monthMs) * entry.summa;
+                    current = segmentEnd;
                 }
             }
             return total;
@@ -80,6 +90,8 @@
             document.getElementById("yhteensa-saasto").innerText = (pM + tM).toFixed(2) + " €";
             document.getElementById("kaikki-saasto").innerText = (pY + tY).toFixed(2) + " €";
             document.getElementById("kuukausi-otsikko").innerText = "Yhteensä " + months[now.getMonth()];
+            const vuosiEl = document.getElementById("vuosi-otsikko");
+            if (vuosiEl) vuosiEl.innerText = nykyinenVuosi;
         }
 
         function handleInteraction() {

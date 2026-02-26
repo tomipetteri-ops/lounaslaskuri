@@ -98,9 +98,19 @@
                 if (kuvatDiaIndex !== -1) {
                     DIAT[kuvatDiaIndex].aika = e.data.aika;
                     console.log(`Kuvat.html dian aika päivitetty: ${e.data.aika}s`);
-                    // Jos kuvat.html on parhaillaan esillä, päivitä palkki ja ajastin
+                    // Jos kuvat.html on jo esillä, ÄLÄ kutsu naytaDia() – se lataisi iframen uudelleen
+                    // ja katkaisisi kuvien kierron. Päivitä vain ajastin ja palkki.
                     if (nykyinenDia === kuvatDiaIndex) {
-                        naytaDia(kuvatDiaIndex); // Käynnistää dian uudelleen päivitetyllä ajalla
+                        const dia = DIAT[kuvatDiaIndex];
+                        const palkki = document.getElementById('edistymispalkki');
+                        palkki.style.transition = 'none';
+                        palkki.style.width = '0%';
+                        setTimeout(() => {
+                            palkki.style.transition = 'width ' + dia.aika + 's linear';
+                            palkki.style.width = '100%';
+                        }, 50);
+                        clearTimeout(ajastin);
+                        ajastin = setTimeout(() => naytaDia(nykyinenDia + 1), dia.aika * 1000);
                     }
                 }
             }

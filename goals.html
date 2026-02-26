@@ -6,32 +6,60 @@
     <title>Goals</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Courier New', Courier, monospace; padding: 8px 8px 48px 8px; }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 8px 8px 48px 8px;
+        }
+
+        .goals-container {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            overflow: auto;
+        }
 
         .osio {
             display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .osio-rivi {
+            display: flex;
             flex-direction: row;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
-            margin-bottom: 12px;
+            min-height: 0;
         }
 
         .osio-vasen {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
             flex-shrink: 0;
         }
 
         .ascii-taide {
-            font-size: clamp(0.35rem, 0.85vw, 0.6rem);
+            font-size: inherit;
             line-height: 1.1;
             white-space: pre;
         }
 
         .goals-nimi {
-            font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+            font-size: inherit;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.08em;
@@ -41,18 +69,20 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             gap: 1px;
             padding-top: 2px;
+            overflow: hidden;
+            min-height: 0;
         }
 
         .goals-rivi {
             display: flex;
             align-items: center;
             gap: 4px;
-            /* border-bottom: 1px solid #bbb; */
             padding: 2px 0;
-            font-size: clamp(0.6rem, 1.3vw, 0.85rem);
-            min-height: 20px;
+            font-size: 0.9em;
+            min-height: 1em;
         }
 
         .goals-rivi span { flex: 1; outline: none; }
@@ -119,35 +149,47 @@
 </head>
 <body>
 
+    <div class="goals-container">
     <div class="osio">
-        <div class="osio-vasen">
-            <div class="ascii-taide"> /\_/\
+        <div class="osio-rivi">
+            <div class="osio-vasen">
+                <div class="ascii-taide"> /\_/\
 ( o.o )
  > ^ <</div>
-            <div class="goals-nimi">Paula</div>
+            </div>
+            <div class="osio-oikea" id="paula-lista"></div>
         </div>
-        <div class="osio-oikea" id="paula-lista"></div>
+        <div class="goals-nimi">Paula</div>
     </div>
 
     <div class="osio">
-        <div class="osio-vasen">
-            <div class="ascii-taide">  o
- /|\
- / \</div>
-            <div class="goals-nimi">Tomi</div>
+        <div class="osio-rivi">
+            <div class="osio-vasen">
+                <div class="ascii-taide">  .-.
+  |o|
+ /| |\
+  | |
+ /   \</div>
+            </div>
+            <div class="osio-oikea" id="tomi-lista"></div>
         </div>
-        <div class="osio-oikea" id="tomi-lista"></div>
+        <div class="goals-nimi">Tomi</div>
     </div>
 
     <div class="osio">
-        <div class="osio-vasen">
-            <div class="ascii-taide"> .::.
- ::::
- '::'
-  ':'</div>
-            <div class="goals-nimi">Yhdessa</div>
+        <div class="osio-rivi">
+            <div class="osio-vasen">
+                <div class="ascii-taide">  **  **
+ *  **  *
+ *      *
+  *    *
+   *  *
+    **</div>
+            </div>
+            <div class="osio-oikea" id="yhteiset-lista"></div>
         </div>
-        <div class="osio-oikea" id="yhteiset-lista"></div>
+        <div class="goals-nimi">Yhdessa</div>
+    </div>
     </div>
 
     <div class="alapalkki"><button class="alapalkki-nappi" onclick="kaynnistaDia()">▶ JATKA</button>
@@ -200,7 +242,10 @@
             var popup = document.getElementById(id);
             var onAuki = popup.classList.contains('auki');
             suljeKaikki();
-            if (!onAuki) popup.classList.add('auki');
+            if (!onAuki) {
+                popup.classList.add('auki');
+                if (id === 'lisaa-popup' || id === 'toiminto-popup') pysaytaDia();
+            }
         }
 
         function suljeKaikki() {
@@ -265,9 +310,37 @@
                     });
                 }
             });
+            skaalaaFontit();
         }
 
-        window.onload = lataaGoals;
+        function skaalaaFontit() {
+            var container = document.querySelector('.goals-container');
+            if (!container) return;
+            var maxFont = 22;
+            var minFont = 8;
+            for (var fs = maxFont; fs >= minFont; fs -= 2) {
+                container.style.fontSize = fs + 'px';
+                if (container.scrollHeight <= container.clientHeight) {
+                    return;
+                }
+            }
+            container.style.fontSize = minFont + 'px';
+        }
+
+        window.onload = function() {
+            lataaGoals();
+            skaalaaFontit();
+            var c = document.querySelector('.goals-container');
+            if (c && typeof ResizeObserver !== 'undefined') {
+                new ResizeObserver(skaalaaFontit).observe(c);
+            }
+            ['paula','tomi','yhteiset'].forEach(function(h) {
+                var lista = document.getElementById(h + '-lista');
+                if (lista && typeof MutationObserver !== 'undefined') {
+                    new MutationObserver(skaalaaFontit).observe(lista, { childList: true, subtree: true, characterData: true });
+                }
+            });
+        };
     </script>
 <div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none;">v1.1_1423</div>
 </body>

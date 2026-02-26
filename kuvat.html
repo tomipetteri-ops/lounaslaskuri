@@ -24,14 +24,14 @@
     <div class="kuvat-sivu">
         <div class="kuva-nakymä" id="kuva-nakymä">
             <div class="kuva-placeholder" id="kuva-placeholder">
-                <label for="kuva-input">+ Lisää kuvia</label>
+                <label for="kuva-input" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää kuvia</label>
                 <input type="file" id="kuva-input" accept="image/*" multiple onchange="lisaaKuvat(event)">
             </div>
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
         <div class="kuva-info">
             <span id="kuva-laskuri">Ladataan...</span>
-            <label for="kuva-input">+ Lisää kuvia</label>
+            <label for="kuva-input-lisaa" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää kuvia</label>
             <input type="file" id="kuva-input-lisaa" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
             <span onclick="tyhjennaKuvat()">🗑 Tyhjennä</span>
         </div>
@@ -41,7 +41,7 @@
         // ==========================================
         // ASETUKSET
         // ==========================================
-        const KUVA_AIKA = 10; // sekuntia per kuva
+        const KUVA_AIKA = 5; // sekuntia per kuva
 
         // ==========================================
         // INDEXEDDB
@@ -153,7 +153,7 @@
             if (kuvat.length === 0) return;
             nykyinenKuva = (nykyinenKuva + 1) % kuvat.length;
             paivitaKuva();
-            lahetaKuvienAika();
+            // Älä lähetä lahetaKuvienAika() – aiheuttaisi iframe-latauksen ja katkaisisi kuvien kierron
         }
 
         function kaynnista() {
@@ -175,7 +175,7 @@
         };
     
         function lahetaKuvienAika() {
-            const totalTime = kuvat.length * KUVA_AIKA;
+            const totalTime = kuvat.length > 0 ? kuvat.length * KUVA_AIKA : 5; // Tyhjällä väh. 5s ennen diavaihtoa
             window.parent.postMessage({ type: 'kuvienAika', aika: totalTime }, '*');
         }
 </script>
