@@ -23,6 +23,11 @@
             display: flex;
             flex-direction: column;
             padding: 12px 16px 48px 16px;
+            transition: transform 0.3s ease;
+        }
+
+        body.muokkaus {
+            transform: rotate(0deg);
         }
 
         .goals-container {
@@ -357,10 +362,15 @@
             var span = document.createElement('span');
             span.contentEditable = true;
             span.innerText = teksti || '';
+            span.addEventListener('focus', function () { document.body.classList.add('muokkaus'); });
             span.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
             });
-            span.addEventListener('blur', function () { if (!span.innerText.trim()) { rivi.remove(); } autoTallenna(h); });
+            span.addEventListener('blur', function () {
+                document.body.classList.remove('muokkaus');
+                if (!span.innerText.trim()) { rivi.remove(); }
+                autoTallenna(h);
+            });
             var poista = document.createElement('span');
             poista.className = 'poista';
             poista.innerText = 'x';
