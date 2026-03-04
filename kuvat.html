@@ -5,26 +5,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kuvat</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .kuva-info {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 25px;
-            font-size: 0.85rem;
-            border-top: 2px solid black;
-            flex-shrink: 0;
-        }
+    body {
+    transform: rotate(180deg);
+    transform-origin: center center;
+    }
 
-        .kuva-info label {
-            cursor: pointer;
-        }
+    .kuva-info {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    font-size: 0.85rem;
+    border-top: 2px solid black;
+    flex-shrink: 0;
+    }
 
-        .kuva-info span {
-            cursor: pointer;
-        }
+    .kuva-info label {
+    cursor: pointer;
+    }
+
+    .kuva-info span {
+    cursor: pointer;
+    }
     </style>
 </head>
 
@@ -152,7 +155,7 @@
                 laskuri.innerText = (nykyinenKuva + 1) + " / " + kuvat.length;
             } else {
                 img.style.display = 'none';
-                placeholder.style.display = 'flex';
+                placeholder.style.display = 'none';
                 laskuri.innerText = "Ei kuvia";
             }
         }

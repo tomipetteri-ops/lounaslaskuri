@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="fi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Laskuri</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            transform: rotate(180deg);
+            transform-origin: center center;
+        }
+    </style>
 </head>
+
 <body>
     <div class="laskuri-sivu" onclick="handleInteraction()">
         <div class="henkilo">
@@ -41,9 +48,9 @@
         const nykyinenVuosi = new Date().getFullYear();
         const vuosiAlku = [nykyinenVuosi, 0, 1];
 
-        const months = ["Tammikuussa","Helmikuussa","Maaliskuussa","Huhtikuussa","Toukokuussa",
-                        "Kesäkuussa","Heinäkuussa","Elokuussa","Syyskuussa","Lokakuussa",
-                        "Marraskuussa","Joulukuussa"];
+        const months = ["Tammikuussa", "Helmikuussa", "Maaliskuussa", "Huhtikuussa", "Toukokuussa",
+            "Kesäkuussa", "Heinäkuussa", "Elokuussa", "Syyskuussa", "Lokakuussa",
+            "Marraskuussa", "Joulukuussa"];
 
         function parseDate(arr) { return new Date(arr[0], arr[1], arr[2]).getTime(); }
         function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
@@ -53,7 +60,7 @@
             for (let i = 0; i < history.length; i++) {
                 const entry = history[i];
                 const entryStart = parseDate(entry.alkaen);
-                let entryEnd = (i + 1 < history.length) ? parseDate(history[i+1].alkaen) : end;
+                let entryEnd = (i + 1 < history.length) ? parseDate(history[i + 1].alkaen) : end;
                 const activeStart = Math.max(entryStart, start);
                 const activeEnd = Math.min(entryEnd, end);
                 if (activeEnd <= activeStart) continue;
@@ -98,11 +105,11 @@
             update();
             if (window.parent && window.parent !== window) return;
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
+                document.documentElement.requestFullscreen().catch(() => { });
             }
         }
 
-        window.onload = function() {
+        window.onload = function () {
             update();
             setInterval(update, paivitysvaliSekunteina * 1000);
         };
@@ -110,20 +117,22 @@
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") update();
         });
-    
-    window.addEventListener('message', function(event) {
-        if (event.data === 'pysayta') {
-            console.log('Pysäytetään ajastin');
-            if (window.slideTimer) clearInterval(window.slideTimer);
-        } else if (event.data === 'kaynnista') {
-            console.log('Käynnistetään ajastin');
-            // Oletetaan että kello/dia päivittyy handleInteraction tai vastaavalla
-            if (typeof handleInteraction === 'function') handleInteraction();
-            else location.reload(); // Vararatkaisu: päivitä sivu jos funktiota ei löydy
-        }
-    });
 
-</script>
-<div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none; color:gray;">v1.1_1423</div>
+        window.addEventListener('message', function (event) {
+            if (event.data === 'pysayta') {
+                console.log('Pysäytetään ajastin');
+                if (window.slideTimer) clearInterval(window.slideTimer);
+            } else if (event.data === 'kaynnista') {
+                console.log('Käynnistetään ajastin');
+                // Oletetaan että kello/dia päivittyy handleInteraction tai vastaavalla
+                if (typeof handleInteraction === 'function') handleInteraction();
+                else location.reload(); // Vararatkaisu: päivitä sivu jos funktiota ei löydy
+            }
+        });
+
+    </script>
+    <div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none; color:gray;">
+        v1.1_1423</div>
 </body>
+
 </html>
