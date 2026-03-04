@@ -20,8 +20,6 @@
             width: 100vw;
             height: 100vh;
             font-family: 'Courier New', Courier, monospace;
-            transform: rotate(180deg);
-            transform-origin: center center;
         }
 
         /* Iframe täyttää koko ruudun */
@@ -46,9 +44,10 @@
 </head>
 
 <body>
-
-    <iframe id="dia-kehys" src="laskuri.html"></iframe>
-    <div id="edistymispalkki" style="width:0%"></div>
+    <div style="width: 100vw; height: 100vh; transform: rotate(180deg); transform-origin: center center;">
+        <iframe id="dia-kehys" src="laskuri.html"></iframe>
+        <div id="edistymispalkki" style="width:0%"></div>
+    </div>
 
     <script>
         // ==========================================
