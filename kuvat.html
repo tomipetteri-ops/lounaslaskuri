@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,23 +17,33 @@
             border-top: 2px solid black;
             flex-shrink: 0;
         }
-        .kuva-info label { cursor: pointer; }
-        .kuva-info span { cursor: pointer; }
+
+        .kuva-info label {
+            cursor: pointer;
+        }
+
+        .kuva-info span {
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
     <div class="kuvat-sivu">
         <div class="kuva-nakymä" id="kuva-nakymä">
             <div class="kuva-placeholder" id="kuva-placeholder">
-                <label for="kuva-input" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää kuvia</label>
+                <label for="kuva-input" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää
+                    kuvia</label>
                 <input type="file" id="kuva-input" accept="image/*" multiple onchange="lisaaKuvat(event)">
             </div>
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
         <div class="kuva-info">
             <span id="kuva-laskuri">Ladataan...</span>
-            <label for="kuva-input-lisaa" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää kuvia</label>
-            <input type="file" id="kuva-input-lisaa" accept="image/*" multiple onchange="lisaaKuvat(event)" style="display:none;">
+            <label for="kuva-input-lisaa" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää
+                kuvia</label>
+            <input type="file" id="kuva-input-lisaa" accept="image/*" multiple onchange="lisaaKuvat(event)"
+                style="display:none;">
             <span onclick="tyhjennaKuvat()">🗑 Tyhjennä</span>
         </div>
     </div>
@@ -41,7 +52,7 @@
         // ==========================================
         // ASETUKSET
         // ==========================================
-        const KUVA_AIKA = 5; // sekuntia per kuva
+        let kuvaAika = 5; // sekuntia per kuva, oletus. Saadaan index.html:ltä.
 
         // ==========================================
         // INDEXEDDB
@@ -54,14 +65,14 @@
         function avaaDB() {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(DB_NIMI, DB_VERSIO);
-                req.onupgradeneeded = function(e) {
+                req.onupgradeneeded = function (e) {
                     const tietokanta = e.target.result;
                     if (!tietokanta.objectStoreNames.contains(STORE_NIMI)) {
                         tietokanta.createObjectStore(STORE_NIMI, { keyPath: 'id', autoIncrement: true });
                     }
                 };
-                req.onsuccess = function(e) { resolve(e.target.result); };
-                req.onerror = function(e) { reject(e); };
+                req.onsuccess = function (e) { resolve(e.target.result); };
+                req.onerror = function (e) { reject(e); };
             });
         }
 
@@ -107,7 +118,7 @@
             let ladattu = 0;
             tiedostot.forEach(tiedosto => {
                 const reader = new FileReader();
-                reader.onload = async function(e) {
+                reader.onload = async function (e) {
                     kuvat.push(e.target.result);
                     await tallennaKuvaDB(e.target.result);
                     ladattu++;
@@ -159,25 +170,38 @@
         function kaynnista() {
             clearInterval(ajastin);
             if (kuvat.length > 1) {
-                ajastin = setInterval(seuraavaKuva, KUVA_AIKA * 1000);
+                ajastin = setInterval(seuraavaKuva, kuvaAika * 1000);
             }
         }
 
         // ==========================================
         // KÄYNNISTYS — lataa tallennetut kuvat
         // ==========================================
-        window.onload = async function() {
+        window.onload = async function () {
             db = await avaaDB();
             kuvat = await lataaKuvatDB();
             paivitaKuva();
             kaynnista();
             lahetaKuvienAika();
         };
-    
+
         function lahetaKuvienAika() {
-            const totalTime = kuvat.length > 0 ? kuvat.length * KUVA_AIKA : 5; // Tyhjällä väh. 5s ennen diavaihtoa
+            const totalTime = kuvat.length > 0 ? kuvat.length * kuvaAika : kuvaAika; // Tyhjällä väh. asetus-arvo ennen diavaihtoa
             window.parent.postMessage({ type: 'kuvienAika', aika: totalTime }, '*');
         }
-</script>
+
+        window.addEventListener('message', function (e) {
+            if (e.data.type === 'asetaKuvaAika') {
+                const uusiAika = parseInt(e.data.aika, 10);
+                if (uusiAika && uusiAika !== kuvaAika) {
+                    kuvaAika = uusiAika;
+                    console.log("Kuvat saivat uuden ajan isännältä:", kuvaAika, "s per kuva");
+                    lahetaKuvienAika();
+                    kaynnista(); // Päivitetään ajastimen nopeus uutta aikaa vastaavaksi
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>
