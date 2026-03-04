@@ -154,7 +154,7 @@
             background: white;
             z-index: 10;
             flex-direction: column;
-            min-width: 120px;
+            min-width: 200px;
         }
 
         .popup.auki {
@@ -163,8 +163,8 @@
 
         .popup-vaihtoehto {
             font-family: 'Courier New', Courier, monospace;
-            font-size: clamp(0.5rem, 1vw, 0.7rem);
-            padding: 6px 12px;
+            font-size: clamp(1.5rem, 3vw, 2.1rem);
+            padding: 12px 18px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
             white-space: nowrap;
@@ -182,8 +182,8 @@
         .popup-vaihtoehto.otsikko {
             opacity: 0.4;
             cursor: default;
-            font-size: 0.55rem;
-            padding: 4px 12px 2px;
+            font-size: 1.5rem;
+            padding: 8px 12px 4px;
         }
 
         .popup-vaihtoehto.otsikko:hover {
@@ -195,16 +195,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 4px 12px;
+            padding: 8px 12px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: clamp(0.5rem, 1vw, 0.7rem);
+            font-size: clamp(1rem, 2vw, 1.5rem);
         }
 
         .asetus-rivi input {
-            width: 40px;
+            width: 80px;
             font-family: inherit;
             font-size: inherit;
-            text-align: right;
+            text-align: center;
             border: 1px solid #ccc;
         }
     </style>
@@ -225,233 +225,233 @@
             </div>
         </div>
 
-            <div class="osio">
-                <div class="osio-rivi">
-                    <div class="osio-vasen">
-                        <pre class="ascii-taide"> .-.
+        <div class="osio">
+            <div class="osio-rivi">
+                <div class="osio-vasen">
+                    <pre class="ascii-taide"> .-.
  |o|
 /|_|\
  | |
  / \</pre>
-                        <div class="goals-nimi">Tomi</div>
-                    </div>
-                    <div class="osio-oikea" id="tomi-lista"></div>
+                    <div class="goals-nimi">Tomi</div>
                 </div>
+                <div class="osio-oikea" id="tomi-lista"></div>
             </div>
+        </div>
 
-            <div class="osio">
-                <div class="osio-rivi">
-                    <div class="osio-vasen">
-                        <pre class="ascii-taide"> **  **
+        <div class="osio">
+            <div class="osio-rivi">
+                <div class="osio-vasen">
+                    <pre class="ascii-taide"> **  **
 *  **  *
 *      *
  *    *
   *  *
    **</pre>
-                        <div class="goals-nimi">Yhdessa</div>
-                    </div>
-                    <div class="osio-oikea" id="yhteiset-lista"></div>
+                    <div class="goals-nimi">Yhdessa</div>
                 </div>
+                <div class="osio-oikea" id="yhteiset-lista"></div>
             </div>
         </div>
+    </div>
 
-        <div class="alapalkki"><button class="alapalkki-nappi" onclick="kaynnistaDia()">▶ JATKA</button>
-            <button class="alapalkki-nappi" onclick="togglePopup('lisaa-popup')">+ lisaa</button>
-            <div class="info" id="info"></div>
-            <button class="alapalkki-nappi" onclick="togglePopup('asetukset-popup')">⚙ Asetukset</button>
-            <button class="alapalkki-nappi" onclick="togglePopup('toiminto-popup')">&#8943;</button>
+    <div class="alapalkki"><button class="alapalkki-nappi" onclick="kaynnistaDia()">▶ JATKA</button>
+        <button class="alapalkki-nappi" onclick="togglePopup('lisaa-popup')">+ lisaa</button>
+        <div class="info" id="info"></div>
+        <button class="alapalkki-nappi" onclick="togglePopup('asetukset-popup')">⚙ Asetukset</button>
+        <button class="alapalkki-nappi" onclick="togglePopup('toiminto-popup')">&#8943;</button>
 
-            <div class="popup" id="lisaa-popup" style="left: 0;">
-                <div class="popup-vaihtoehto otsikko">Kenelle?</div>
-                <div class="popup-vaihtoehto" onclick="lisaaRivi('paula')">Paula</div>
-                <div class="popup-vaihtoehto" onclick="lisaaRivi('tomi')">Tomi</div>
-                <div class="popup-vaihtoehto" onclick="lisaaRivi('yhteiset')">Yhdessa</div>
-            </div>
-
-            <div class="popup" id="toiminto-popup" style="right: 0;">
-                <div class="popup-vaihtoehto otsikko">Kenelle?</div>
-                <div class="popup-vaihtoehto" onclick="naytaToiminnot('paula')">Paula</div>
-                <div class="popup-vaihtoehto" onclick="naytaToiminnot('tomi')">Tomi</div>
-                <div class="popup-vaihtoehto" onclick="naytaToiminnot('yhteiset')">Yhdessa</div>
-            </div>
-
-            <div class="popup" id="tallenna-popup" style="right: 0;">
-                <div class="popup-vaihtoehto otsikko" id="tallenna-otsikko"></div>
-                <div class="popup-vaihtoehto" onclick="tyhjennaGoals()">Tyhjenna</div>
-            </div>
-
-            <div class="popup" id="asetukset-popup" style="right: 0;">
-                <div class="popup-vaihtoehto otsikko">Ajat (sekuntia)</div>
-                <div class="asetus-rivi">
-                    <span>Laskuri:</span>
-                    <input type="number" id="asetus-laskuri" min="1" max="300" value="5">
-                </div>
-                <div class="asetus-rivi">
-                    <span>Kuvat:</span>
-                    <input type="number" id="asetus-kuvat" min="1" max="300" value="5">
-                </div>
-                <div class="asetus-rivi">
-                    <span>Goals:</span>
-                    <input type="number" id="asetus-goals" min="1" max="300" value="5">
-                </div>
-                <div class="popup-vaihtoehto" style="text-align: center; font-weight: bold;"
-                    onclick="tallennaAsetukset()">Tallenna</div>
-            </div>
+        <div class="popup" id="lisaa-popup" style="left: 0;">
+            <div class="popup-vaihtoehto otsikko">Kenelle?</div>
+            <div class="popup-vaihtoehto" onclick="lisaaRivi('paula')">Paula</div>
+            <div class="popup-vaihtoehto" onclick="lisaaRivi('tomi')">Tomi</div>
+            <div class="popup-vaihtoehto" onclick="lisaaRivi('yhteiset')">Yhdessa</div>
         </div>
 
-        <script>
-            var valittuHenkilo = null;
+        <div class="popup" id="toiminto-popup" style="right: 0;">
+            <div class="popup-vaihtoehto otsikko">Kenelle?</div>
+            <div class="popup-vaihtoehto" onclick="naytaToiminnot('paula')">Paula</div>
+            <div class="popup-vaihtoehto" onclick="naytaToiminnot('tomi')">Tomi</div>
+            <div class="popup-vaihtoehto" onclick="naytaToiminnot('yhteiset')">Yhdessa</div>
+        </div>
 
-            function kaynnistaDia() {
-                try { window.parent.postMessage('kaynnista', '*'); } catch (e) { }
-            }
-            function pysaytaDia() {
-                try { window.parent.postMessage('pysayta', '*'); } catch (e) { }
-            }
+        <div class="popup" id="tallenna-popup" style="right: 0;">
+            <div class="popup-vaihtoehto otsikko" id="tallenna-otsikko"></div>
+            <div class="popup-vaihtoehto" onclick="tyhjennaGoals()">Tyhjenna</div>
+        </div>
 
-            function autoTallenna(h) {
-                var lista = document.getElementById(h + '-lista');
-                var rivit = Array.from(lista.querySelectorAll('.goals-rivi span'))
-                    .map(function (s) { return s.innerText.trim(); })
-                    .filter(function (t) { return t.length > 0; });
-                localStorage.setItem('goals_' + h, JSON.stringify(rivit));
-            }
+        <div class="popup" id="asetukset-popup" style="right: 0;">
+            <div class="popup-vaihtoehto otsikko">Ajat (sekuntia)</div>
+            <div class="asetus-rivi">
+                <span>Laskuri:</span>
+                <input type="number" id="asetus-laskuri" min="1" max="300" value="5">
+            </div>
+            <div class="asetus-rivi">
+                <span>Kuvat:</span>
+                <input type="number" id="asetus-kuvat" min="1" max="300" value="5">
+            </div>
+            <div class="asetus-rivi">
+                <span>Goals:</span>
+                <input type="number" id="asetus-goals" min="1" max="300" value="5">
+            </div>
+            <div class="popup-vaihtoehto" style="text-align: center; font-weight: bold;" onclick="tallennaAsetukset()">
+                Tallenna</div>
+        </div>
+    </div>
 
-            function togglePopup(id) {
-                var popup = document.getElementById(id);
-                var onAuki = popup.classList.contains('auki');
+    <script>
+        var valittuHenkilo = null;
+
+        function kaynnistaDia() {
+            try { window.parent.postMessage('kaynnista', '*'); } catch (e) { }
+        }
+        function pysaytaDia() {
+            try { window.parent.postMessage('pysayta', '*'); } catch (e) { }
+        }
+
+        function autoTallenna(h) {
+            var lista = document.getElementById(h + '-lista');
+            var rivit = Array.from(lista.querySelectorAll('.goals-rivi span'))
+                .map(function (s) { return s.innerText.trim(); })
+                .filter(function (t) { return t.length > 0; });
+            localStorage.setItem('goals_' + h, JSON.stringify(rivit));
+        }
+
+        function togglePopup(id) {
+            var popup = document.getElementById(id);
+            var onAuki = popup.classList.contains('auki');
+            suljeKaikki();
+            if (!onAuki) {
+                popup.classList.add('auki');
+                if (id === 'lisaa-popup' || id === 'toiminto-popup' || id === 'asetukset-popup') pysaytaDia();
+            }
+        }
+
+        function suljeKaikki() {
+            ['lisaa-popup', 'toiminto-popup', 'tallenna-popup', 'asetukset-popup'].forEach(function (id) {
+                document.getElementById(id).classList.remove('auki');
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.popup') &&
+                !e.target.classList.contains('alapalkki-nappi') &&
+                !e.target.classList.contains('popup-vaihtoehto')) {
                 suljeKaikki();
-                if (!onAuki) {
-                    popup.classList.add('auki');
-                    if (id === 'lisaa-popup' || id === 'toiminto-popup' || id === 'asetukset-popup') pysaytaDia();
+            }
+        });
+
+        function naytaToiminnot(h) {
+            valittuHenkilo = h;
+            document.getElementById('tallenna-otsikko').innerText = h.charAt(0).toUpperCase() + h.slice(1);
+            document.getElementById('toiminto-popup').classList.remove('auki');
+            document.getElementById('tallenna-popup').classList.add('auki');
+        }
+
+        function lisaaRivi(h, teksti, alaTallenna) {
+            suljeKaikki();
+            if (alaTallenna !== false) pysaytaDia();
+            var lista = document.getElementById(h + '-lista');
+            var rivi = document.createElement('div');
+            rivi.className = 'goals-rivi';
+            var span = document.createElement('span');
+            span.contentEditable = true;
+            span.innerText = teksti || '';
+            span.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
+            });
+            span.addEventListener('blur', function () { if (!span.innerText.trim()) { rivi.remove(); } autoTallenna(h); });
+            var poista = document.createElement('span');
+            poista.className = 'poista';
+            poista.innerText = 'x';
+            poista.onclick = function () { pysaytaDia(); rivi.remove(); autoTallenna(h); };
+            rivi.appendChild(span);
+            rivi.appendChild(poista);
+            lista.appendChild(rivi);
+            if (!teksti) { span.focus(); }
+        }
+
+        function tyhjennaGoals() {
+            suljeKaikki();
+            var h = valittuHenkilo;
+            if (confirm('Tyhjennetaanko ' + h + '?')) {
+                document.getElementById(h + '-lista').innerHTML = '';
+                localStorage.removeItem('goals_' + h);
+            }
+        }
+
+        function lataaAsetukset() {
+            try {
+                var tallennettu = localStorage.getItem('lounas_ajat');
+                if (tallennettu) {
+                    var ajat = JSON.parse(tallennettu);
+                    if (ajat.laskuri) document.getElementById('asetus-laskuri').value = ajat.laskuri;
+                    if (ajat.kuvat) document.getElementById('asetus-kuvat').value = ajat.kuvat;
+                    if (ajat.goals) document.getElementById('asetus-goals').value = ajat.goals;
                 }
-            }
+            } catch (e) { }
+        }
 
-            function suljeKaikki() {
-                ['lisaa-popup', 'toiminto-popup', 'tallenna-popup', 'asetukset-popup'].forEach(function (id) {
-                    document.getElementById(id).classList.remove('auki');
-                });
-            }
+        function tallennaAsetukset() {
+            var laskuri = parseInt(document.getElementById('asetus-laskuri').value, 10) || 5;
+            var kuvat = parseInt(document.getElementById('asetus-kuvat').value, 10) || 5;
+            var goals = parseInt(document.getElementById('asetus-goals').value, 10) || 5;
 
-            document.addEventListener('click', function (e) {
-                if (!e.target.closest('.popup') &&
-                    !e.target.classList.contains('alapalkki-nappi') &&
-                    !e.target.classList.contains('popup-vaihtoehto')) {
-                    suljeKaikki();
+            var ajat = { laskuri: laskuri, kuvat: kuvat, goals: goals };
+            localStorage.setItem('lounas_ajat', JSON.stringify(ajat));
+
+            try {
+                window.parent.postMessage({ type: 'ajatPaivitetty', laskuri: laskuri, kuvat: kuvat, goals: goals }, '*');
+            } catch (e) { }
+
+            suljeKaikki();
+            kaynnistaDia();
+        }
+
+        function lataaGoals() {
+            ['paula', 'tomi', 'yhteiset'].forEach(function (h) {
+                var tallennettu = localStorage.getItem('goals_' + h);
+                if (tallennettu) {
+                    JSON.parse(tallennettu).forEach(function (teksti) {
+                        lisaaRivi(h, teksti, false);
+                    });
                 }
             });
+            lataaAsetukset();
+            skaalaaFontit();
+        }
 
-            function naytaToiminnot(h) {
-                valittuHenkilo = h;
-                document.getElementById('tallenna-otsikko').innerText = h.charAt(0).toUpperCase() + h.slice(1);
-                document.getElementById('toiminto-popup').classList.remove('auki');
-                document.getElementById('tallenna-popup').classList.add('auki');
+        function skaalaaFontit() {
+            var container = document.querySelector('.goals-container');
+            if (!container) return;
+            var maxFont = 22;
+            var minFont = 8;
+            for (var fs = maxFont; fs >= minFont; fs -= 2) {
+                container.style.fontSize = fs + 'px';
+                if (container.scrollHeight <= container.clientHeight) {
+                    return;
+                }
             }
+            container.style.fontSize = minFont + 'px';
+        }
 
-            function lisaaRivi(h, teksti, alaTallenna) {
-                suljeKaikki();
-                if (alaTallenna !== false) pysaytaDia();
+        window.onload = function () {
+            lataaGoals();
+            skaalaaFontit();
+            var c = document.querySelector('.goals-container');
+            if (c && typeof ResizeObserver !== 'undefined') {
+                new ResizeObserver(skaalaaFontit).observe(c);
+            }
+            ['paula', 'tomi', 'yhteiset'].forEach(function (h) {
                 var lista = document.getElementById(h + '-lista');
-                var rivi = document.createElement('div');
-                rivi.className = 'goals-rivi';
-                var span = document.createElement('span');
-                span.contentEditable = true;
-                span.innerText = teksti || '';
-                span.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
-                });
-                span.addEventListener('blur', function () { if (!span.innerText.trim()) { rivi.remove(); } autoTallenna(h); });
-                var poista = document.createElement('span');
-                poista.className = 'poista';
-                poista.innerText = 'x';
-                poista.onclick = function () { pysaytaDia(); rivi.remove(); autoTallenna(h); };
-                rivi.appendChild(span);
-                rivi.appendChild(poista);
-                lista.appendChild(rivi);
-                if (!teksti) { span.focus(); }
-            }
-
-            function tyhjennaGoals() {
-                suljeKaikki();
-                var h = valittuHenkilo;
-                if (confirm('Tyhjennetaanko ' + h + '?')) {
-                    document.getElementById(h + '-lista').innerHTML = '';
-                    localStorage.removeItem('goals_' + h);
+                if (lista && typeof MutationObserver !== 'undefined') {
+                    new MutationObserver(skaalaaFontit).observe(lista, { childList: true, subtree: true, characterData: true });
                 }
-            }
-
-            function lataaAsetukset() {
-                try {
-                    var tallennettu = localStorage.getItem('lounas_ajat');
-                    if (tallennettu) {
-                        var ajat = JSON.parse(tallennettu);
-                        if (ajat.laskuri) document.getElementById('asetus-laskuri').value = ajat.laskuri;
-                        if (ajat.kuvat) document.getElementById('asetus-kuvat').value = ajat.kuvat;
-                        if (ajat.goals) document.getElementById('asetus-goals').value = ajat.goals;
-                    }
-                } catch (e) { }
-            }
-
-            function tallennaAsetukset() {
-                var laskuri = parseInt(document.getElementById('asetus-laskuri').value, 10) || 5;
-                var kuvat = parseInt(document.getElementById('asetus-kuvat').value, 10) || 5;
-                var goals = parseInt(document.getElementById('asetus-goals').value, 10) || 5;
-
-                var ajat = { laskuri: laskuri, kuvat: kuvat, goals: goals };
-                localStorage.setItem('lounas_ajat', JSON.stringify(ajat));
-
-                try {
-                    window.parent.postMessage({ type: 'ajatPaivitetty', laskuri: laskuri, kuvat: kuvat, goals: goals }, '*');
-                } catch (e) { }
-
-                suljeKaikki();
-                kaynnistaDia();
-            }
-
-            function lataaGoals() {
-                ['paula', 'tomi', 'yhteiset'].forEach(function (h) {
-                    var tallennettu = localStorage.getItem('goals_' + h);
-                    if (tallennettu) {
-                        JSON.parse(tallennettu).forEach(function (teksti) {
-                            lisaaRivi(h, teksti, false);
-                        });
-                    }
-                });
-                lataaAsetukset();
-                skaalaaFontit();
-            }
-
-            function skaalaaFontit() {
-                var container = document.querySelector('.goals-container');
-                if (!container) return;
-                var maxFont = 22;
-                var minFont = 8;
-                for (var fs = maxFont; fs >= minFont; fs -= 2) {
-                    container.style.fontSize = fs + 'px';
-                    if (container.scrollHeight <= container.clientHeight) {
-                        return;
-                    }
-                }
-                container.style.fontSize = minFont + 'px';
-            }
-
-            window.onload = function () {
-                lataaGoals();
-                skaalaaFontit();
-                var c = document.querySelector('.goals-container');
-                if (c && typeof ResizeObserver !== 'undefined') {
-                    new ResizeObserver(skaalaaFontit).observe(c);
-                }
-                ['paula', 'tomi', 'yhteiset'].forEach(function (h) {
-                    var lista = document.getElementById(h + '-lista');
-                    if (lista && typeof MutationObserver !== 'undefined') {
-                        new MutationObserver(skaalaaFontit).observe(lista, { childList: true, subtree: true, characterData: true });
-                    }
-                });
-            };
-        </script>
-        <div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none;">v1.2_0304
-        </div>
+            });
+        };
+    </script>
+    <div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none;">v1.2_0304
+    </div>
 </body>
 
 </html>
