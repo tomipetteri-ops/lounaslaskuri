@@ -31,10 +31,7 @@
 <body>
     <div class="kuvat-sivu">
         <div class="kuva-nakymä" id="kuva-nakymä">
-            <div class="kuva-placeholder" id="kuva-placeholder">
-                <label for="kuva-input" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää
-                    kuvia</label>
-                <input type="file" id="kuva-input" accept="image/*" multiple onchange="lisaaKuvat(event)">
+            <div class="kuva-placeholder" id="kuva-placeholder" style="display:none;">
             </div>
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
