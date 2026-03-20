@@ -23,7 +23,6 @@
             display: flex;
             flex-direction: column;
             padding: 12px 16px 0 16px;
-            transition: transform 0.3s ease;
         }
 
         body.muokkaus {
@@ -36,6 +35,7 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             gap: 1em;
             overflow: auto;
         }
@@ -133,12 +133,12 @@
 
         .alapalkki-nappi {
             font-family: 'Courier New', Courier, monospace;
-            font-size: clamp(0.55rem, 1.1vw, 0.75rem);
+            font-size: clamp(0.7rem, 1.8vw, 1.1rem);
             font-weight: bold;
             border: 1px solid black;
             background: white;
             color: black;
-            padding: 3px 10px;
+            padding: 6px 14px;
             cursor: pointer;
         }
 
@@ -161,7 +161,7 @@
             background: white;
             z-index: 10;
             flex-direction: column;
-            min-width: 200px;
+            min-width: 280px;
         }
 
         .popup.auki {
@@ -170,7 +170,7 @@
 
         .popup-vaihtoehto {
             font-family: 'Courier New', Courier, monospace;
-            font-size: clamp(1.5rem, 3vw, 2.1rem);
+            font-size: clamp(1.5rem, 3.5vw, 2.5rem);
             padding: 12px 18px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
@@ -204,11 +204,11 @@
             align-items: center;
             padding: 8px 12px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: clamp(1rem, 2vw, 1.5rem);
+            font-size: clamp(1rem, 2.5vw, 1.8rem);
         }
 
         .asetus-rivi input {
-            width: 80px;
+            width: 100px;
             font-family: inherit;
             font-size: inherit;
             text-align: center;
@@ -436,7 +436,7 @@
         function skaalaaFontit() {
             var container = document.querySelector('.goals-container');
             if (!container) return;
-            var maxFont = 22;
+            var maxFont = 40;
             var minFont = 8;
             for (var fs = maxFont; fs >= minFont; fs -= 2) {
                 container.style.fontSize = fs + 'px';
