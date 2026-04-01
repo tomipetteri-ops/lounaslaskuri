@@ -25,11 +25,6 @@
             padding: 12px 16px 0 16px;
         }
 
-        body.muokkaus {
-            transform: rotate(180deg);
-            transform-origin: center center;
-        }
-
         .goals-container {
             flex: 1;
             min-height: 0;
@@ -364,12 +359,11 @@
             var span = document.createElement('span');
             span.contentEditable = true;
             span.innerText = teksti || '';
-            span.addEventListener('focus', function () { document.body.classList.add('muokkaus'); });
+            span.addEventListener('focus', function () { });
             span.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
             });
             span.addEventListener('blur', function () {
-                document.body.classList.remove('muokkaus');
                 if (!span.innerText.trim()) { rivi.remove(); }
                 autoTallenna(h);
             });
