@@ -164,6 +164,11 @@
             }
         });
 
+        // Service worker — offline-tuki
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(function () { });
+        }
+
         // Fullscreen kun klikataan
         document.addEventListener('click', () => {
             if (!document.fullscreenElement) {
