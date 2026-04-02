@@ -40,19 +40,35 @@ Kuukauden saasto = vertailuarvo - edellisen kuukauden todellinen kulutus
 Esim. huhtikuu: 1766.51 - 1274.62 (maalis) = 491.89 euroa/kk
 
 Paula:
-Annetaan manuaalisesti eri jarjestelmasta.
+Lahde: Actual Budget (eri kategoriat kuin Tomi)
+
+Vertailuarvo = (loka 2025 + marras 2025 + joulu 2025) / 3
+            = (1540.37 + 927.32 + 1130.26) / 3
+            = 1199.32 euroa/kk
+
+Kuukauden saasto = vertailuarvo - edellisen kuukauden todellinen kulutus
+Esim. huhtikuu: 1199.32 - 834.24 (maalis) = 365.08 euroa/kk
+
+Lahdedata (Actual Budget):
+  Paula                    Tomi (Kulutusosio vain)
+  Loka 2025:  1540.37      Loka 2025:  1929.43
+  Marras 2025: 927.32      Marras 2025: 1607.25
+  Joulu 2025: 1130.26      Joulu 2025: 1762.86
+  Tammi 2026:  610.06      Tammi 2026:  809.00
+  Helmi 2026:  570.28      Helmi 2026: 1009.33
+  Maalis 2026: 834.24      Maalis 2026: 1274.62
 
 Kk-arvojen paivitys
 
-Tomin arvot paivitetaan kuukausittain:
-1. Avaa Actual Budget > Reports > Kulutusosio vain
+Kummallekin paivitetaan kuukausittain:
+1. Avaa Actual Budget > Reports > oikea raportti
 2. Aseta Compare: edellinen kk, To: sama kk
 3. Lue "Spent" -luku oikealta
-4. Laske: 1766.51 - spent = uusi summa
-5. Lisaa laskuri.html tomiHistory-taulukkoon:
+4. Laske: vertailuarvo - spent = uusi summa
+   Paula: 1199.32 - spent
+   Tomi:  1766.51 - spent
+5. Lisaa laskuri.html historiaan:
    { alkaen: [2026, KK, 1], summa: UUSI_ARVO }
-
-Paulan arvot paivitetaan manuaalisesti paulaHistory-taulukkoon.
 
 Kayttoonotto Booxilla
 
