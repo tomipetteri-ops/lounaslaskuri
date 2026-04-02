@@ -34,11 +34,18 @@
         // ==========================================
         const paivitysvaliSekunteina = 60;
 
+        // Paula: manuaalisesti annettu arvo (eri jarjestelma)
         const paulaHistory = [
-            { alkaen: [2026, 0, 1], summa: 410 }
+            { alkaen: [2026, 0, 1], summa: 410 },
+            { alkaen: [2026, 1, 1], summa: 350 },
+            { alkaen: [2026, 2, 1], summa: 300 }
         ];
+        // Tomi: vertailuarvo (loka-joulu 2025 ka.) 1766.51 - edellisen kk kulutus
+        // Lahde: Actual Budget > Kulutusosio vain -raportti
         const tomiHistory = [
-            { alkaen: [2026, 0, 1], summa: 870 }
+            { alkaen: [2026, 0, 1], summa: 957.51 },
+            { alkaen: [2026, 1, 1], summa: 757.18 },
+            { alkaen: [2026, 2, 1], summa: 491.89 }
         ];
         const nykyinenVuosi = new Date().getFullYear();
         const vuosiAlku = [nykyinenVuosi, 0, 1];

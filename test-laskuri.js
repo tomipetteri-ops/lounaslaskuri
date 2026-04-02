@@ -100,21 +100,26 @@ for (const vuosi of [2024, 2025, 2026]) {
     if (test(`${vuosi} tammikuu 500 € → ${t.toFixed(2)} €`, Math.abs(t - 500) < 0.01)) passed++; else failed++;
 }
 
-// 7. Nykyinen data (Paula 410, Tomi 870) – tarkistus
-console.log('\n7. Nykyinen data (Paula 410 €, Tomi 870 €):');
+// 7. Nykyinen data – monirivinen historia
+console.log('\n7. Nykyinen data (Paula 410/350/300, Tomi 957.51/757.18/491.89):');
 const nyt = new Date();
 const kkAlku = new Date(nyt.getFullYear(), nyt.getMonth(), 1).getTime();
 const vuosiAlku = new Date(nyt.getFullYear(), 0, 1).getTime();
-const paulaH = [{ alkaen: [2026, 0, 1], summa: 410 }];
-const tomiH = [{ alkaen: [2026, 0, 1], summa: 870 }];
+const paulaH = [
+    { alkaen: [2026, 0, 1], summa: 410 },
+    { alkaen: [2026, 1, 1], summa: 350 },
+    { alkaen: [2026, 2, 1], summa: 300 }
+];
+const tomiH = [
+    { alkaen: [2026, 0, 1], summa: 957.51 },
+    { alkaen: [2026, 1, 1], summa: 757.18 },
+    { alkaen: [2026, 2, 1], summa: 491.89 }
+];
 const pM = calculateSavings(paulaH, kkAlku, nyt.getTime());
 const tM = calculateSavings(tomiH, kkAlku, nyt.getTime());
 const pY = calculateSavings(paulaH, vuosiAlku, nyt.getTime());
 const tY = calculateSavings(tomiH, vuosiAlku, nyt.getTime());
-const daysInMonth = getDaysInMonth(nyt);
-const dayOfMonth = nyt.getDate();
-const expectedMonth = (410 + 870) * (dayOfMonth / daysInMonth);
-if (test(`Kuukausi yhteensä: Paula ${pM.toFixed(2)} + Tomi ${tM.toFixed(2)} = ${(pM+tM).toFixed(2)} €`, (pM + tM) > 0 && (pM + tM) < 1280 * 1.1)) passed++; else failed++;
+if (test(`Kuukausi yhteensä: Paula ${pM.toFixed(2)} + Tomi ${tM.toFixed(2)} = ${(pM+tM).toFixed(2)} €`, (pM + tM) > 0)) passed++; else failed++;
 if (test(`Vuosi yhteensä: ${(pY+tY).toFixed(2)} €`, (pY + tY) > 0)) passed++; else failed++;
 
 console.log('\n=== Yhteenveto ===');

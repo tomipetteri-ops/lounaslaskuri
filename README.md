@@ -1,43 +1,81 @@
-💶 Säästölaskuri (Paula & Tomi)
+Saastolaskuri (Paula & Tomi)
 
-Tämä on kevyt, selaimessa toimiva säästölaskuri, joka on optimoitu erityisesti Boox Go 7 E-ink -laitteelle. Laskuri laskee lounassäästöjen kertymää reaaliajassa ja näyttää sekä kuukausittaisen että vuosittaisen säästötilanteen.
+Selaimessa toimiva kolmen sivun slideshow Boox Go 7 E-ink -laitteelle. Nayttaa saastojen kertyman reaaliajassa, tavoitelistat ja kuvakarusellin.
 
-✨ Ominaisuudet
+Sivut
 
-E-ink Optimointi: Korkea kontrasti, suuret fontit ja vähän välkkymistä aiheuttavat päivitykset.
+Laskuri (laskuri.html)
+Laskee Paulan ja Tomin saastot sekunnin tarkkuudella. Nayttaa kuukausi- ja vuosisumman. Paivittyy 60 sekunnin valein.
 
-Reaaliaikainen laskenta: Laskee säästöt sekunnin tarkkuudella laitteen kelloon perustuen.
+Goals (goals.html)
+Tavoitelista kolmelle kategorialle: Paula, Tomi ja Yhdessa. Jokaisella ASCII-taide-ikoni. Tukee lisaysta, muokkausta ja poistoa. Landscape-tilassa osiot rinnakkain.
 
-Historiahallinta: Tukee muuttuvia säästötavoitteita ilman, että kertyneen historian laskenta menee sekaisin.
+Kuvat (kuvat.html)
+Kuvakaruselli IndexedDB-tallennuksella. Kuvat lisataan drag-drop tai tiedostovalitsimella. E-ink-optimoitu (grayscale + kontrasti).
 
-Yksityisyys: Kaikki laskenta tapahtuu paikallisesti selaimessa. Mitään tietoja ei lähetetä palvelimelle.
+Arkkitehtuuri
 
-🛠 Käyttöönotto Booxilla
+index.html toimii master-kontrollerina ja pyorittaa sivuja iframessa:
 
-Avaa osoite: https://tomipetteri-ops.github.io/lounaslaskuri/
+  index.html (slideshow)
+    |
+    +-- laskuri.html  (saastolaskuri)
+    +-- kuvat.html    (kuvakaruselli)
+    +-- goals.html    (tavoitelistat)
 
-Valitse selaimen valikosta "Add to Home Screen".
+Sivujen valiset viestit kulkevat postMessage-APIlla. Asetukset (sivujen nayttoajat) tallentuvat localStorageen. Goals tallentuvat localStorageen, kuvat IndexedDB:hen.
 
-Säädä E-ink Centeristä virkistystilaksi Regal ja nosta Dark Enhancement -asetusta.
+Saastokaava
 
-Käytä laitetta lentokonetilassa akun säästämiseksi (laskuri toimii ilman verkkoa latauksen jälkeen).
+Tomi:
+Lahde: Actual Budget (https://axiomatic-beagle.pikapod.net/budget)
+Raportti: "Kulutusosio vain" (Reports-sivu)
+Kategoriat: Yllattavat kulut, Seka, Mina 480e vuosi, Bensa, Lounas, Ruoka + Sekatavara ym.
 
-📝 Säästötavoitteiden muuttaminen
+Vertailuarvo = (loka 2025 + marras 2025 + joulu 2025) / 3
+            = (1929.43 + 1607.25 + 1762.86) / 3
+            = 1766.51 euroa/kk
 
-Jos kuukausittainen säästötavoite muuttuu, päivitä index.html-tiedoston historia-osio:
+Kuukauden saasto = vertailuarvo - edellisen kuukauden todellinen kulutus
+Esim. huhtikuu: 1766.51 - 1274.62 (maalis) = 491.89 euroa/kk
 
-const paulaHistoria = [
-    { alkaen: "2026-01-01", summa: 410 },
-    { alkaen: "2026-04-01", summa: 500 } // Lisää tällainen rivi muutoksen tapahtuessa
-];
+Paula:
+Annetaan manuaalisesti eri jarjestelmasta.
 
+Kk-arvojen paivitys
 
-🔋 Akun säästövinkit
+Tomin arvot paivitetaan kuukausittain:
+1. Avaa Actual Budget > Reports > Kulutusosio vain
+2. Aseta Compare: edellinen kk, To: sama kk
+3. Lue "Spent" -luku oikealta
+4. Laske: 1766.51 - spent = uusi summa
+5. Lisaa laskuri.html tomiHistory-taulukkoon:
+   { alkaen: [2026, KK, 1], summa: UUSI_ARVO }
 
-Pidä taustavalo pois päältä.
+Paulan arvot paivitetaan manuaalisesti paulaHistory-taulukkoon.
 
-Käytä Auto Sleep: Never ja Auto Wi-Fi Off (tai lentokonetilaa).
+Kayttoonotto Booxilla
 
-Päivitysväli on asetettu koodissa 60 sekuntiin virrankulutuksen minimoimiseksi.
+1. Avaa: https://tomipetteri-ops.github.io/lounaslaskuri/
+2. Valitse selaimen valikosta "Add to Home Screen"
+3. Saada E-ink Centerista: Regal-virkistystila, Dark Enhancement ylos
+4. Lentokonetila akun saastamiseksi (toimii offline latauksen jalkeen)
 
-Tehty yhteistyössä Geminin kanssa.
+Kehitys
+
+Paikallinen kehityspalvelin:
+  python3 -m http.server 8080
+
+Testit:
+  node test-laskuri.js
+
+Tiedostorakenne
+
+  index.html          Slideshow-kontrolleri (master)
+  laskuri.html        Saastolaskuri
+  goals.html          Tavoitelistat + ASCII-taide
+  kuvat.html          Kuvakaruselli (IndexedDB)
+  style.css           Jaetut E-ink-tyylit
+  test-laskuri.js     Testit (Node.js)
+  test-laskuri.html   Testit (selain)
+  goals_vanha.html    Arkistoitu vanha versio

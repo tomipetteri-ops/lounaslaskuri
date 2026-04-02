@@ -209,6 +209,25 @@
             text-align: center;
             border: 1px solid #ccc;
         }
+
+        @media (orientation: landscape) {
+            .goals-container {
+                flex-direction: row;
+                align-items: stretch;
+                gap: 0;
+            }
+
+            .osio {
+                flex: 1;
+                border-right: 1px solid black;
+                padding: 0 8px;
+                justify-content: center;
+            }
+
+            .osio:last-child {
+                border-right: none;
+            }
+        }
     </style>
 </head>
 
@@ -430,7 +449,7 @@
         function skaalaaFontit() {
             var container = document.querySelector('.goals-container');
             if (!container) return;
-            var maxFont = 40;
+            var maxFont = window.innerWidth > window.innerHeight ? 34 : 40;
             var minFont = 8;
             for (var fs = maxFont; fs >= minFont; fs -= 2) {
                 container.style.fontSize = fs + 'px';
