@@ -97,19 +97,42 @@
             min-height: 1em;
         }
 
-        .goals-rivi span:not(.poista) {
+        .goals-rivi span {
             flex: 1;
             outline: none;
-        }
-
-        .goals-rivi .poista {
             cursor: pointer;
-            opacity: 0.2;
-            font-size: 0.6rem;
         }
 
-        .goals-rivi .poista:hover {
-            opacity: 1;
+        .rivi-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid black;
+            background: white;
+            z-index: 30;
+            flex-direction: column;
+            min-width: 280px;
+        }
+
+        .rivi-popup.auki {
+            display: flex;
+        }
+
+        .rivi-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 25;
+        }
+
+        .rivi-popup-overlay.auki {
+            display: block;
         }
 
         .alapalkki {
@@ -210,24 +233,6 @@
             border: 1px solid #ccc;
         }
 
-        @media (orientation: landscape) {
-            .goals-container {
-                flex-direction: row;
-                align-items: stretch;
-                gap: 0;
-            }
-
-            .osio {
-                flex: 1;
-                border-right: 1px solid black;
-                padding: 0 8px;
-                justify-content: center;
-            }
-
-            .osio:last-child {
-                border-right: none;
-            }
-        }
     </style>
 </head>
 
@@ -276,6 +281,14 @@
         </div>
     </div>
 
+    <div class="rivi-popup-overlay" id="rivi-overlay" onclick="suljeRiviPopup()"></div>
+    <div class="rivi-popup" id="rivi-popup">
+        <div class="popup-vaihtoehto otsikko" id="rivi-popup-teksti"></div>
+        <div class="popup-vaihtoehto" onclick="muokkaaValittua()">Muokkaa</div>
+        <div class="popup-vaihtoehto" onclick="poistaValittu()">Poista</div>
+        <div class="popup-vaihtoehto" onclick="suljeRiviPopup()">Peruuta</div>
+    </div>
+
     <div class="alapalkki"><button class="alapalkki-nappi" onclick="kaynnistaDia()">▶ JATKA</button>
         <button class="alapalkki-nappi" onclick="togglePopup('lisaa-popup')">+ lisaa</button>
         <div class="info" id="info"></div>
@@ -322,6 +335,57 @@
 
     <script>
         var valittuHenkilo = null;
+        var valittuRivi = null;
+        var valittuRiviHenkilo = null;
+
+        function avaaRiviPopup(rivi, h) {
+            valittuRivi = rivi;
+            valittuRiviHenkilo = h;
+            var teksti = rivi.querySelector('span').innerText.trim();
+            document.getElementById('rivi-popup-teksti').innerText = teksti || '(tyhja)';
+            document.getElementById('rivi-popup').classList.add('auki');
+            document.getElementById('rivi-overlay').classList.add('auki');
+            pysaytaDia();
+        }
+
+        function suljeRiviPopup() {
+            document.getElementById('rivi-popup').classList.remove('auki');
+            document.getElementById('rivi-overlay').classList.remove('auki');
+            valittuRivi = null;
+            valittuRiviHenkilo = null;
+        }
+
+        function poistaValittu() {
+            if (valittuRivi && valittuRiviHenkilo) {
+                valittuRivi.remove();
+                autoTallenna(valittuRiviHenkilo);
+            }
+            suljeRiviPopup();
+        }
+
+        function muokkaaValittua() {
+            if (valittuRivi) {
+                var rivi = valittuRivi;
+                var h = valittuRiviHenkilo;
+                var span = rivi.querySelector('span');
+                suljeRiviPopup();
+                span.contentEditable = true;
+                span.focus();
+                var blurDone = false;
+                span.addEventListener('blur', function onBlur() {
+                    if (blurDone) return;
+                    blurDone = true;
+                    span.contentEditable = false;
+                    if (!span.innerText.trim() && rivi.parentNode) { rivi.remove(); }
+                    autoTallenna(h);
+                    span.removeEventListener('blur', onBlur);
+                });
+                span.addEventListener('keydown', function onKey(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
+                    span.removeEventListener('keydown', onKey);
+                });
+            }
+        }
 
         function kaynnistaDia() {
             try { window.parent.postMessage('kaynnista', '*'); } catch (e) { }
@@ -376,22 +440,21 @@
             var rivi = document.createElement('div');
             rivi.className = 'goals-rivi';
             var span = document.createElement('span');
-            span.contentEditable = true;
             span.innerText = teksti || '';
-            span.addEventListener('focus', function () { });
-            span.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') { e.preventDefault(); lisaaRivi(h); }
-            });
-            span.addEventListener('blur', function () {
-                if (!span.innerText.trim()) { rivi.remove(); }
-                autoTallenna(h);
-            });
-            var poista = document.createElement('span');
-            poista.className = 'poista';
-            poista.innerText = 'x';
-            poista.onclick = function () { pysaytaDia(); rivi.remove(); autoTallenna(h); };
+            if (!teksti) {
+                span.contentEditable = true;
+                span.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') { e.preventDefault(); span.contentEditable = false; autoTallenna(h); lisaaRivi(h); }
+                });
+                span.addEventListener('blur', function () {
+                    span.contentEditable = false;
+                    if (!span.innerText.trim() && rivi.parentNode) { rivi.remove(); }
+                    autoTallenna(h);
+                });
+            } else {
+                span.addEventListener('click', function () { avaaRiviPopup(rivi, h); });
+            }
             rivi.appendChild(span);
-            rivi.appendChild(poista);
             lista.appendChild(rivi);
             if (!teksti) { span.focus(); }
         }
@@ -449,7 +512,7 @@
         function skaalaaFontit() {
             var container = document.querySelector('.goals-container');
             if (!container) return;
-            var maxFont = window.innerWidth > window.innerHeight ? 34 : 40;
+            var maxFont = 30;
             var minFont = 8;
             for (var fs = maxFont; fs >= minFont; fs -= 2) {
                 container.style.fontSize = fs + 'px';
