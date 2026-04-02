@@ -36,7 +36,7 @@ Vertailuarvo = (loka 2025 + marras 2025 + joulu 2025) / 3
             = (1929.43 + 1607.25 + 1762.86) / 3
             = 1766.51 euroa/kk
 
-Kuukauden saasto = vertailuarvo - edellisen kuukauden todellinen kulutus
+Kuukauden saasto = vertailuarvo - kuukauden todellinen kulutus
 Esim. huhtikuu: 1766.51 - 1274.62 (maalis) = 491.89 euroa/kk
 
 Paula:
@@ -46,7 +46,7 @@ Vertailuarvo = (loka 2025 + marras 2025 + joulu 2025) / 3
             = (1540.37 + 927.32 + 1130.26) / 3
             = 1199.32 euroa/kk
 
-Kuukauden saasto = vertailuarvo - edellisen kuukauden todellinen kulutus
+Kuukauden saasto = vertailuarvo - kuukauden todellinen kulutus
 Esim. huhtikuu: 1199.32 - 834.24 (maalis) = 365.08 euroa/kk
 
 Lahdedata (Actual Budget):

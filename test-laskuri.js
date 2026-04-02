@@ -101,15 +101,14 @@ for (const vuosi of [2024, 2025, 2026]) {
 }
 
 // 7. Nykyinen data – monirivinen historia
-console.log('\n7. Nykyinen data (Paula 69.06/589.26/629.04/365.08, Tomi 957.51/757.18/491.89):');
+console.log('\n7. Nykyinen data (Paula 589.26/629.04/365.08, Tomi 957.51/757.18/491.89):');
 const nyt = new Date();
 const kkAlku = new Date(nyt.getFullYear(), nyt.getMonth(), 1).getTime();
 const vuosiAlku = new Date(nyt.getFullYear(), 0, 1).getTime();
 const paulaH = [
-    { alkaen: [2026, 0, 1], summa: 69.06 },
-    { alkaen: [2026, 1, 1], summa: 589.26 },
-    { alkaen: [2026, 2, 1], summa: 629.04 },
-    { alkaen: [2026, 3, 1], summa: 365.08 }
+    { alkaen: [2026, 0, 1], summa: 589.26 },
+    { alkaen: [2026, 1, 1], summa: 629.04 },
+    { alkaen: [2026, 2, 1], summa: 365.08 }
 ];
 const tomiH = [
     { alkaen: [2026, 0, 1], summa: 957.51 },
