@@ -1,4 +1,5 @@
-var CACHE_NAME = 'lounaslaskuri';
+var CACHE_VERSION = 2;
+var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
 var URLS = [
     './',
     './index.html',
@@ -20,6 +21,17 @@ self.addEventListener('install', function (e) {
 });
 
 self.addEventListener('activate', function (e) {
+    e.waitUntil(
+        caches.keys().then(function (names) {
+            return Promise.all(
+                names.filter(function (name) {
+                    return name !== CACHE_NAME;
+                }).map(function (name) {
+                    return caches.delete(name);
+                })
+            );
+        })
+    );
     self.clients.claim();
 });
 
