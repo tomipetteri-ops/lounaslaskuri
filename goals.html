@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Goals</title>
+    <script src="diagnostiikka.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -328,6 +329,10 @@
                 <span>Goals:</span>
                 <input type="number" id="asetus-goals" min="1" max="300" value="5">
             </div>
+            <div class="asetus-rivi">
+                <span>Diagnostiikka:</span>
+                <input type="checkbox" id="asetus-diagnostiikka">
+            </div>
             <div class="popup-vaihtoehto" style="text-align: center; font-weight: bold;" onclick="tallennaAsetukset()">
                 Tallenna</div>
         </div>
@@ -478,6 +483,10 @@
                     if (ajat.goals) document.getElementById('asetus-goals').value = ajat.goals;
                 }
             } catch (e) { }
+
+            // Diagnostiikka-checkbox
+            var diagPaalla = localStorage.getItem('lounas_diagnostiikka') === 'true';
+            document.getElementById('asetus-diagnostiikka').checked = diagPaalla;
         }
 
         function tallennaAsetukset() {
@@ -487,6 +496,10 @@
 
             var ajat = { laskuri: laskuri, kuvat: kuvat, goals: goals };
             localStorage.setItem('lounas_ajat', JSON.stringify(ajat));
+
+            // Diagnostiikka-asetus
+            var diagPaalla = document.getElementById('asetus-diagnostiikka').checked;
+            localStorage.setItem('lounas_diagnostiikka', diagPaalla ? 'true' : 'false');
 
             try {
                 window.parent.postMessage({ type: 'ajatPaivitetty', laskuri: laskuri, kuvat: kuvat, goals: goals }, '*');

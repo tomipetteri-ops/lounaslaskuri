@@ -5,7 +5,9 @@ var URLS = [
     './laskuri.html',
     './goals.html',
     './kuvat.html',
-    './style.css'
+    './style.css',
+    './diagnostiikka.html',
+    './diagnostiikka.js'
 ];
 
 self.addEventListener('install', function (e) {

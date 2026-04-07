@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diagnostiikka</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            padding: 12px 16px;
+        }
+
+        h1 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .viiva {
+            border-top: 1px solid #000;
+            margin: 6px 0;
+        }
+
+        .osio-otsikko {
+            font-weight: bold;
+            margin: 4px 0 2px 0;
+        }
+
+        .rivi {
+            margin-left: 8px;
+            line-height: 1.4;
+        }
+
+        .alarivi {
+            margin-left: 16px;
+            line-height: 1.4;
+        }
+
+        .meta {
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>RESURSSIDIAGNOSTIIKKA</h1>
+    <div class="viiva"></div>
+    <div id="meta" class="meta"></div>
+    <div class="viiva"></div>
+    <div id="sisalto"></div>
+
+    <script>
+        function muotoileAika(ms) {
+            var sek = Math.floor(ms / 1000);
+            var min = Math.floor(sek / 60);
+            var h = Math.floor(min / 60);
+            min = min % 60;
+            if (h > 0) return h + 'h ' + min + 'min';
+            if (min > 0) return min + 'min';
+            return sek + 's';
+        }
+
+        function muotoileMuisti(tavut) {
+            return (tavut / 1048576).toFixed(1) + ' MB';
+        }
+
+        function renderoi(data) {
+            var kooste = data.kooste || {};
+            var parentDiag = data.parent || {};
+            var lataukset = data.lataukset || {};
+
+            // Meta-tiedot
+            var metaHtml = '';
+            var uptime = parentDiag.uptime || performance.now();
+            metaHtml += 'Kaynnissa: ' + muotoileAika(uptime) + '<br>';
+
+            if (parentDiag.muisti) {
+                metaHtml += 'Muisti: ' + muotoileMuisti(parentDiag.muisti.kaytetty) +
+                    ' / ' + muotoileMuisti(parentDiag.muisti.kokonais) + '<br>';
+            }
+
+            // Battery Status API (best effort)
+            if (navigator.getBattery) {
+                navigator.getBattery().then(function (b) {
+                    var akkuTeksti = 'Akku: ' + Math.round(b.level * 100) + '%';
+                    if (!b.charging && b.dischargingTime && b.dischargingTime !== Infinity) {
+                        akkuTeksti += ' (purkaus ~' + muotoileAika(b.dischargingTime * 1000) + ')';
+                    } else if (b.charging) {
+                        akkuTeksti += ' (lataa)';
+                    }
+                    metaHtml += akkuTeksti + '<br>';
+                    document.getElementById('meta').innerHTML = metaHtml;
+                }).catch(function () { });
+            }
+            document.getElementById('meta').innerHTML = metaHtml;
+
+            // Sisalto
+            var html = '';
+
+            // -- Ajastinheratykset --
+            html += '<div class="osio-otsikko">Ajastinheratykset</div>';
+            var ajastimiaLoydetty = false;
+
+            var sivut = Object.keys(kooste);
+            // Lisa myos parent
+            if (parentDiag.ajastimet) {
+                sivut.unshift('__parent__');
+            }
+
+            for (var i = 0; i < sivut.length; i++) {
+                var sivuNimi = sivut[i];
+                var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
+                if (!d || !d.ajastimet) continue;
+
+                var intervallit = d.ajastimet.interval || [];
+                var timeoutit = (d.ajastimet.timeout || []).filter(function (t) { return t.aktiivinen; });
+
+                if (intervallit.length === 0 && timeoutit.length === 0) continue;
+
+                ajastimiaLoydetty = true;
+                var nimi = sivuNimi === '__parent__' ? 'index.html' : sivuNimi;
+                html += '<div class="rivi">' + nimi + '</div>';
+
+                for (var j = 0; j < intervallit.length; j++) {
+                    var iv = intervallit[j];
+                    html += '<div class="alarivi">setInterval ' + iv.ms + 'ms (' + iv.kutsut + 'x)</div>';
+                }
+                for (var j = 0; j < timeoutit.length; j++) {
+                    var to = timeoutit[j];
+                    html += '<div class="alarivi">setTimeout ' + to.ms + 'ms (' + to.kutsut + 'x)</div>';
+                }
+            }
+            if (!ajastimiaLoydetty) {
+                html += '<div class="rivi">ei aktiivisia</div>';
+            }
+
+            // -- DOM-muutokset --
+            html += '<div class="viiva"></div>';
+            html += '<div class="osio-otsikko">DOM-muutokset</div>';
+            var domLoydetty = false;
+
+            for (var i = 0; i < sivut.length; i++) {
+                var sivuNimi = sivut[i];
+                var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
+                if (!d || !d.tarkkailijat) continue;
+                var t = d.tarkkailijat;
+                if (t.resize === 0 && t.mutation === 0) continue;
+
+                domLoydetty = true;
+                var nimi = sivuNimi === '__parent__' ? 'index.html' : sivuNimi;
+                html += '<div class="rivi">' + nimi + '</div>';
+
+                if (t.resize > 0) {
+                    html += '<div class="alarivi">ResizeObserver (' + t.resizeKutsut + 'x, piilossa: ' + t.resizeKutsutPiilossa + 'x)</div>';
+                }
+                if (t.mutation > 0) {
+                    html += '<div class="alarivi">MutationObserver x' + t.mutation + ' (' + t.mutationKutsut + 'x, piilossa: ' + t.mutationKutsutPiilossa + 'x)</div>';
+                }
+            }
+            if (!domLoydetty) {
+                html += '<div class="rivi">ei tarkkailijoita</div>';
+            }
+
+            // -- Sivulataukset --
+            html += '<div class="viiva"></div>';
+            html += '<div class="osio-otsikko">Sivulataukset</div>';
+            var latausRivit = [];
+            var latausAvaimet = Object.keys(lataukset);
+            for (var i = 0; i < latausAvaimet.length; i++) {
+                var s = latausAvaimet[i].replace('.html', '');
+                latausRivit.push(s + ': ' + lataukset[latausAvaimet[i]] + 'x');
+            }
+            html += '<div class="rivi">' + (latausRivit.length > 0 ? latausRivit.join(' | ') : 'ei dataa') + '</div>';
+
+            // -- Verkkopyynnot --
+            html += '<div class="viiva"></div>';
+            html += '<div class="osio-otsikko">Verkkopyynnot</div>';
+            html += '<div class="rivi">Fetch-strategia: network-first</div>';
+            var pyyntojaYht = 0;
+            for (var i = 0; i < sivut.length; i++) {
+                var sivuNimi = sivut[i];
+                var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
+                if (d && d.fetch) pyyntojaYht += d.fetch.pyyntoja || 0;
+            }
+            html += '<div class="rivi">Pyyntoja: ' + pyyntojaYht + '</div>';
+
+            // -- E Ink --
+            html += '<div class="viiva"></div>';
+            html += '<div class="osio-otsikko">E Ink -paivitykset</div>';
+            html += '<div class="rivi">CSS transition: kylla (edistymispalkki)</div>';
+            html += '<div class="rivi">Arvio: kohtalainen</div>';
+
+            document.getElementById('sisalto').innerHTML = html;
+        }
+
+        // Pyydä data parentilta
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'diagnostiikkaData') {
+                renderoi(e.data);
+            }
+        });
+
+        window.onload = function () {
+            window.parent.postMessage({ type: 'haeDiagnostiikka' }, '*');
+        };
+    </script>
+</body>
+
+</html>

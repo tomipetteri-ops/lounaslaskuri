@@ -49,6 +49,7 @@
         <div id="edistymispalkki" style="width:0%"></div>
     </div>
 
+    <script src="diagnostiikka.js"></script>
     <script>
         // ==========================================
         //  ASETUKSET — luetaan localStoragesta
@@ -68,6 +69,15 @@
             { tiedosto: 'kuvat.html', aika: nullKuvatAika, perusKuvatAika: nullKuvatAika },
             { tiedosto: 'goals.html', aika: lounasAjat.goals || 5 },
         ];
+
+        // Diagnostiikka-dia ehdollisesti
+        if (localStorage.getItem('lounas_diagnostiikka') === 'true') {
+            DIAT.push({ tiedosto: 'diagnostiikka.html', aika: lounasAjat.diagnostiikka || 8 });
+        }
+
+        // Diagnostiikka: metriikoiden keruu
+        var __diagKooste = {};
+        var sivuLataukset = {};
         // ==========================================
 
         let nykyinenDia = 0;
@@ -77,8 +87,18 @@
             nykyinenDia = indeksi % DIAT.length;
             const dia = DIAT[nykyinenDia];
 
-            // Vaihda iframe
+            // Keraa diagnostiikka edelliselta iframelta ennen vaihtoa
             const iframe = document.getElementById('dia-kehys');
+            try {
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'keraaDiagnostiikka' }, '*');
+                }
+            } catch (e) { }
+
+            // Seuraa sivulatauksia
+            sivuLataukset[dia.tiedosto] = (sivuLataukset[dia.tiedosto] || 0) + 1;
+
+            // Vaihda iframe
             iframe.src = dia.tiedosto;
 
             // Jos siirrytään kuvat.html:ään, lähetetään sille nykyinen kuvien perusaika viiveellä
@@ -139,6 +159,28 @@
                         clearTimeout(ajastin);
                         ajastin = setTimeout(() => naytaDia(nykyinenDia + 1), dia.aika * 1000);
                     }
+                }
+            } else if (e.data.type === 'diagnostiikka') {
+                // Tallenna lapsi-iframen diagnostiikkadata
+                __diagKooste[e.data.sivu] = e.data.data;
+            } else if (e.data.type === 'haeDiagnostiikka') {
+                // Diagnostiikka.html pyytaa koostetta
+                var parentDiag = window.__diag ? JSON.parse(JSON.stringify(window.__diag)) : {};
+                if (performance.memory) {
+                    parentDiag.muisti = {
+                        kaytetty: performance.memory.usedJSHeapSize,
+                        kokonais: performance.memory.totalJSHeapSize
+                    };
+                }
+                parentDiag.uptime = performance.now();
+                var iframe = document.getElementById('dia-kehys');
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        type: 'diagnostiikkaData',
+                        kooste: __diagKooste,
+                        parent: parentDiag,
+                        lataukset: sivuLataukset
+                    }, '*');
                 }
             } else if (e.data.type === 'ajatPaivitetty') {
                 // Päivitä DIAT-taulukon ajat muille paitsi kuvat.html (jonka kokonaisaika säätyy automaattisesti, mutta perusaika päivitetään)
