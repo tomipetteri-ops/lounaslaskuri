@@ -129,6 +129,19 @@
     });
 
     document.addEventListener('touchend', function (e) {
+        // Ohita napaytukset interaktiivisiin elementteihin (napit, linkit, inputit, editoitavat)
+        var el = e.target;
+        while (el && el !== document.body) {
+            var tag = el.tagName;
+            if (tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'SELECT' ||
+                tag === 'TEXTAREA' || el.contentEditable === 'true' ||
+                el.classList.contains('popup-vaihtoehto') || el.classList.contains('popup') ||
+                el.classList.contains('goals-rivi') || el.onclick) {
+                return;
+            }
+            el = el.parentElement;
+        }
+
         var dx = Math.abs(e.changedTouches[0].clientX - tapStartX);
         var dy = Math.abs(e.changedTouches[0].clientY - tapStartY);
         var dt = Date.now() - tapStartTime;
