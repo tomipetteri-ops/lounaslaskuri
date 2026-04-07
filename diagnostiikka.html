@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Diagnostiikka</title>
+    <script src="diagnostiikka.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -17,47 +18,237 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 13px;
-            padding: 12px 16px;
+            font-size: 12px;
+            background: #fff;
+            color: #000;
         }
 
-        h1 {
-            font-size: 16px;
-            margin-bottom: 8px;
+        .dashboard {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 14px;
         }
 
-        .viiva {
-            border-top: 1px solid #000;
-            margin: 6px 0;
+        .header {
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #000;
+            font-size: 11px;
         }
 
-        .osio-otsikko {
+        .header-title {
+            font-size: 14px;
             font-weight: bold;
-            margin: 4px 0 2px 0;
+            letter-spacing: 2px;
         }
 
-        .rivi {
-            margin-left: 8px;
-            line-height: 1.4;
+        .gauges {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #000;
         }
 
-        .alarivi {
-            margin-left: 16px;
-            line-height: 1.4;
+        .gauge {
+            flex: 1;
+            text-align: center;
         }
 
-        .meta {
-            line-height: 1.5;
+        .gauge-label {
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .gauge-bar {
+            background: #fff;
+            border: 1px solid #000;
+            height: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge-fill {
+            background: #000;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .gauge-text {
+            position: relative;
+            z-index: 1;
+            font-size: 10px;
+            line-height: 14px;
+            mix-blend-mode: difference;
+            color: #fff;
+        }
+
+        .gauge-value {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-top: 6px;
+        }
+
+        .section {
+            border: 1px solid #000;
+            padding: 4px 6px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+            border-bottom: 1px dotted #000;
+            padding-bottom: 2px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 2px 0;
+            font-size: 11px;
+        }
+
+        .bar-label {
+            width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 10px;
+            border: 1px solid #000;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: #000;
+        }
+
+        .bar-value {
+            width: 55px;
+            text-align: right;
+            flex-shrink: 0;
+            font-size: 10px;
+        }
+
+        .ranking {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+        }
+
+        .rank-medal {
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 12px;
+            font-size: 11px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            opacity: 0.7;
+        }
+
+        .footer {
+            border-top: 2px solid #000;
+            padding-top: 4px;
+            font-size: 10px;
+            text-align: center;
+            margin-top: auto;
         }
     </style>
 </head>
 
 <body>
-    <h1>RESURSSIDIAGNOSTIIKKA</h1>
-    <div class="viiva"></div>
-    <div id="meta" class="meta"></div>
-    <div class="viiva"></div>
-    <div id="sisalto"></div>
+    <div class="dashboard">
+        <div class="header">
+            <div class="header-title">RESURSSIDIAGNOSTIIKKA</div>
+            <div id="uptime">Kaynnissa: --</div>
+        </div>
+
+        <div class="gauges">
+            <div class="gauge" id="akku-gauge">
+                <div class="gauge-label">AKKU</div>
+                <div class="gauge-value" id="akku-arvo">--%</div>
+                <div class="gauge-bar">
+                    <div class="gauge-fill" id="akku-fill" style="width: 0%"></div>
+                    <div class="gauge-text" id="akku-teksti"></div>
+                </div>
+            </div>
+            <div class="gauge">
+                <div class="gauge-label">MUISTI</div>
+                <div class="gauge-value" id="muisti-arvo">-- MB</div>
+                <div class="gauge-bar">
+                    <div class="gauge-fill" id="muisti-fill" style="width: 0%"></div>
+                    <div class="gauge-text" id="muisti-teksti"></div>
+                </div>
+            </div>
+            <div class="gauge">
+                <div class="gauge-label">LATAUKSET</div>
+                <div class="gauge-value" id="lataukset-arvo">0</div>
+                <div class="gauge-bar">
+                    <div class="gauge-fill" id="lataukset-fill" style="width: 0%"></div>
+                    <div class="gauge-text" id="lataukset-teksti"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">AJASTINHERATYKSET</div>
+                <div id="ajastimet-sisalto"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">SUURIMMAT KULUTTAJAT (arvio)</div>
+                <div id="kuluttajat-sisalto"></div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">TILASTOT</div>
+                <div id="tilastot-sisalto" class="stats-grid"></div>
+            </div>
+        </div>
+
+        <div class="footer" id="footer">
+            snapshot @ --:--:--
+        </div>
+    </div>
 
     <script>
         function muotoileAika(ms) {
@@ -66,12 +257,17 @@
             var h = Math.floor(min / 60);
             min = min % 60;
             if (h > 0) return h + 'h ' + min + 'min';
-            if (min > 0) return min + 'min';
+            if (min > 0) return min + 'min ' + (sek % 60) + 's';
             return sek + 's';
         }
 
-        function muotoileMuisti(tavut) {
-            return (tavut / 1048576).toFixed(1) + ' MB';
+        function muotoileMB(tavut) {
+            return (tavut / 1048576).toFixed(1);
+        }
+
+        function palkki(osuus) {
+            // osuus 0-1
+            return Math.max(0, Math.min(100, Math.round(osuus * 100)));
         }
 
         function renderoi(data) {
@@ -79,44 +275,60 @@
             var parentDiag = data.parent || {};
             var lataukset = data.lataukset || {};
 
-            // Meta-tiedot
-            var metaHtml = '';
+            // -- Uptime --
             var uptime = parentDiag.uptime || performance.now();
-            metaHtml += 'Kaynnissa: ' + muotoileAika(uptime) + '<br>';
+            document.getElementById('uptime').textContent = 'Kaynnissa: ' + muotoileAika(uptime);
 
-            if (parentDiag.muisti) {
-                metaHtml += 'Muisti: ' + muotoileMuisti(parentDiag.muisti.kaytetty) +
-                    ' / ' + muotoileMuisti(parentDiag.muisti.kokonais) + '<br>';
-            }
-
-            // Battery Status API (best effort)
+            // -- Akku (best effort) --
             if (navigator.getBattery) {
                 navigator.getBattery().then(function (b) {
-                    var akkuTeksti = 'Akku: ' + Math.round(b.level * 100) + '%';
+                    var taso = Math.round(b.level * 100);
+                    document.getElementById('akku-arvo').textContent = taso + '%';
+                    document.getElementById('akku-fill').style.width = taso + '%';
+                    var teksti = b.charging ? 'lataa' : '';
                     if (!b.charging && b.dischargingTime && b.dischargingTime !== Infinity) {
-                        akkuTeksti += ' (purkaus ~' + muotoileAika(b.dischargingTime * 1000) + ')';
-                    } else if (b.charging) {
-                        akkuTeksti += ' (lataa)';
+                        teksti = '~' + muotoileAika(b.dischargingTime * 1000);
                     }
-                    metaHtml += akkuTeksti + '<br>';
-                    document.getElementById('meta').innerHTML = metaHtml;
-                }).catch(function () { });
+                    document.getElementById('akku-teksti').textContent = teksti;
+                }).catch(function () {
+                    document.getElementById('akku-arvo').textContent = 'N/A';
+                });
+            } else {
+                document.getElementById('akku-arvo').textContent = 'N/A';
             }
-            document.getElementById('meta').innerHTML = metaHtml;
 
-            // Sisalto
-            var html = '';
+            // -- Muisti --
+            if (parentDiag.muisti) {
+                var kaytettyMB = muotoileMB(parentDiag.muisti.kaytetty);
+                var kokonaisMB = muotoileMB(parentDiag.muisti.kokonais);
+                document.getElementById('muisti-arvo').textContent = kaytettyMB + ' MB';
+                var muistiOsuus = parentDiag.muisti.kaytetty / parentDiag.muisti.kokonais;
+                document.getElementById('muisti-fill').style.width = palkki(muistiOsuus) + '%';
+                document.getElementById('muisti-teksti').textContent = kaytettyMB + ' / ' + kokonaisMB;
+            }
 
-            // -- Ajastinheratykset --
-            html += '<div class="osio-otsikko">Ajastinheratykset</div>';
-            var ajastimiaLoydetty = false;
+            // -- Lataukset yhteensa --
+            var latYht = 0;
+            var latAvaimet = Object.keys(lataukset);
+            for (var i = 0; i < latAvaimet.length; i++) latYht += lataukset[latAvaimet[i]];
+            document.getElementById('lataukset-arvo').textContent = latYht;
+            // Max-skaalaus: 100 latausta = taysi palkki
+            document.getElementById('lataukset-fill').style.width = palkki(latYht / 100) + '%';
+            var latTekstit = [];
+            for (var i = 0; i < latAvaimet.length; i++) {
+                latTekstit.push(latAvaimet[i].replace('.html', '') + ':' + lataukset[latAvaimet[i]]);
+            }
+            document.getElementById('lataukset-teksti').textContent = latTekstit.join(' ');
 
+            // -- Ajastimet palkkikaaviona --
             var sivut = Object.keys(kooste);
-            // Lisa myos parent
-            if (parentDiag.ajastimet) {
-                sivut.unshift('__parent__');
-            }
+            if (parentDiag.ajastimet) sivut.unshift('__parent__');
 
+            var ajastinHtml = '';
+            var maxKutsut = 1; // valitataan nollajaolla
+
+            // Keraa kaikki ajastimet
+            var ajastinData = [];
             for (var i = 0; i < sivut.length; i++) {
                 var sivuNimi = sivut[i];
                 var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
@@ -124,83 +336,151 @@
 
                 var intervallit = d.ajastimet.interval || [];
                 var timeoutit = (d.ajastimet.timeout || []).filter(function (t) { return t.aktiivinen; });
-
-                if (intervallit.length === 0 && timeoutit.length === 0) continue;
-
-                ajastimiaLoydetty = true;
                 var nimi = sivuNimi === '__parent__' ? 'index.html' : sivuNimi;
-                html += '<div class="rivi">' + nimi + '</div>';
 
                 for (var j = 0; j < intervallit.length; j++) {
                     var iv = intervallit[j];
-                    html += '<div class="alarivi">setInterval ' + iv.ms + 'ms (' + iv.kutsut + 'x)</div>';
+                    ajastinData.push({ nimi: nimi, tyyppi: 'interval', ms: iv.ms, kutsut: iv.kutsut });
+                    if (iv.kutsut > maxKutsut) maxKutsut = iv.kutsut;
                 }
                 for (var j = 0; j < timeoutit.length; j++) {
                     var to = timeoutit[j];
-                    html += '<div class="alarivi">setTimeout ' + to.ms + 'ms (' + to.kutsut + 'x)</div>';
+                    ajastinData.push({ nimi: nimi, tyyppi: 'timeout', ms: to.ms, kutsut: to.kutsut });
+                    if (to.kutsut > maxKutsut) maxKutsut = to.kutsut;
                 }
             }
-            if (!ajastimiaLoydetty) {
-                html += '<div class="rivi">ei aktiivisia</div>';
-            }
 
-            // -- DOM-muutokset --
-            html += '<div class="viiva"></div>';
-            html += '<div class="osio-otsikko">DOM-muutokset</div>';
-            var domLoydetty = false;
+            if (ajastinData.length === 0) {
+                ajastinHtml = '<div style="font-size:11px;opacity:0.5">ei aktiivisia ajastimia</div>';
+            } else {
+                for (var i = 0; i < ajastinData.length; i++) {
+                    var a = ajastinData[i];
+                    var osuus = a.kutsut / maxKutsut;
+                    ajastinHtml += '<div class="bar-row">';
+                    ajastinHtml += '<span class="bar-label">' + a.nimi.replace('.html', '') + '</span>';
+                    ajastinHtml += '<div class="bar-track"><div class="bar-fill" style="width:' + palkki(osuus) + '%"></div></div>';
+                    ajastinHtml += '<span class="bar-value">' + a.ms + 'ms ' + a.kutsut + 'x</span>';
+                    ajastinHtml += '</div>';
+                }
+            }
+            document.getElementById('ajastimet-sisalto').innerHTML = ajastinHtml;
+
+            // -- Suurimmat kuluttajat (ranking) --
+            var kuluttajat = [];
 
             for (var i = 0; i < sivut.length; i++) {
                 var sivuNimi = sivut[i];
                 var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
-                if (!d || !d.tarkkailijat) continue;
-                var t = d.tarkkailijat;
-                if (t.resize === 0 && t.mutation === 0) continue;
+                if (!d) continue;
+                var nimi = sivuNimi === '__parent__' ? 'index' : sivuNimi.replace('.html', '');
 
-                domLoydetty = true;
-                var nimi = sivuNimi === '__parent__' ? 'index.html' : sivuNimi;
-                html += '<div class="rivi">' + nimi + '</div>';
+                var pisteet = 0;
+                var syyt = [];
 
-                if (t.resize > 0) {
-                    html += '<div class="alarivi">ResizeObserver (' + t.resizeKutsut + 'x, piilossa: ' + t.resizeKutsutPiilossa + 'x)</div>';
+                // Ajastimet: pisteyta taajuuden mukaan
+                if (d.ajastimet) {
+                    var iv = d.ajastimet.interval || [];
+                    for (var j = 0; j < iv.length; j++) {
+                        // Lyhempi intervalli = enemman pisteet
+                        var p = Math.round(60000 / Math.max(iv[j].ms, 1));
+                        pisteet += p;
+                        syyt.push('interval ' + iv[j].ms + 'ms');
+                    }
                 }
-                if (t.mutation > 0) {
-                    html += '<div class="alarivi">MutationObserver x' + t.mutation + ' (' + t.mutationKutsut + 'x, piilossa: ' + t.mutationKutsutPiilossa + 'x)</div>';
+
+                // Observerit: erityisesti piilossa-kutsut
+                if (d.tarkkailijat) {
+                    var t = d.tarkkailijat;
+                    if (t.resizeKutsutPiilossa > 0) {
+                        pisteet += t.resizeKutsutPiilossa * 2;
+                        syyt.push('resize piilossa:' + t.resizeKutsutPiilossa);
+                    }
+                    if (t.mutationKutsutPiilossa > 0) {
+                        pisteet += t.mutationKutsutPiilossa * 2;
+                        syyt.push('mutation piilossa:' + t.mutationKutsutPiilossa);
+                    }
+                    if (t.resizeKutsut > t.resizeKutsutPiilossa) {
+                        pisteet += (t.resizeKutsut - t.resizeKutsutPiilossa);
+                        syyt.push('resize:' + t.resizeKutsut);
+                    }
+                    if (t.mutationKutsut > t.mutationKutsutPiilossa) {
+                        pisteet += (t.mutationKutsut - t.mutationKutsutPiilossa);
+                        syyt.push('mutation:' + t.mutationKutsut);
+                    }
+                }
+
+                // Fetch
+                if (d.fetch && d.fetch.pyyntoja > 0) {
+                    pisteet += d.fetch.pyyntoja * 3;
+                    syyt.push('fetch:' + d.fetch.pyyntoja);
+                }
+
+                if (pisteet > 0) {
+                    kuluttajat.push({ nimi: nimi, pisteet: pisteet, syyt: syyt });
                 }
             }
-            if (!domLoydetty) {
-                html += '<div class="rivi">ei tarkkailijoita</div>';
+
+            // E Ink lisapisteet index:lle (CSS transition)
+            var indexEntry = kuluttajat.find(function (k) { return k.nimi === 'index'; });
+            if (indexEntry) {
+                indexEntry.pisteet += 5;
+                indexEntry.syyt.push('CSS transition');
+            } else {
+                kuluttajat.push({ nimi: 'index', pisteet: 5, syyt: ['CSS transition'] });
             }
 
-            // -- Sivulataukset --
-            html += '<div class="viiva"></div>';
-            html += '<div class="osio-otsikko">Sivulataukset</div>';
-            var latausRivit = [];
-            var latausAvaimet = Object.keys(lataukset);
-            for (var i = 0; i < latausAvaimet.length; i++) {
-                var s = latausAvaimet[i].replace('.html', '');
-                latausRivit.push(s + ': ' + lataukset[latausAvaimet[i]] + 'x');
-            }
-            html += '<div class="rivi">' + (latausRivit.length > 0 ? latausRivit.join(' | ') : 'ei dataa') + '</div>';
+            // Jarjesta pisteiden mukaan
+            kuluttajat.sort(function (a, b) { return b.pisteet - a.pisteet; });
 
-            // -- Verkkopyynnot --
-            html += '<div class="viiva"></div>';
-            html += '<div class="osio-otsikko">Verkkopyynnot</div>';
-            html += '<div class="rivi">Fetch-strategia: network-first</div>';
+            var kulHtml = '';
+            var maxPisteet = kuluttajat.length > 0 ? kuluttajat[0].pisteet : 1;
+            var mitalit = ['#1', '#2', '#3', '#4', '#5'];
+
+            for (var i = 0; i < Math.min(kuluttajat.length, 5); i++) {
+                var k = kuluttajat[i];
+                var osuus = k.pisteet / maxPisteet;
+                kulHtml += '<div class="bar-row">';
+                kulHtml += '<span class="bar-label"><b>' + mitalit[i] + '</b> ' + k.nimi + '</span>';
+                kulHtml += '<div class="bar-track"><div class="bar-fill" style="width:' + palkki(osuus) + '%"></div></div>';
+                kulHtml += '<span class="bar-value" title="' + k.syyt.join(', ') + '">' + k.pisteet + ' pts</span>';
+                kulHtml += '</div>';
+            }
+
+            if (kuluttajat.length === 0) {
+                kulHtml = '<div style="font-size:11px;opacity:0.5">ei dataa viela</div>';
+            }
+            document.getElementById('kuluttajat-sisalto').innerHTML = kulHtml;
+
+            // -- Tilastot-gridi --
             var pyyntojaYht = 0;
+            var observerKutsutYht = 0;
+            var piilossaYht = 0;
             for (var i = 0; i < sivut.length; i++) {
                 var sivuNimi = sivut[i];
                 var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
-                if (d && d.fetch) pyyntojaYht += d.fetch.pyyntoja || 0;
+                if (!d) continue;
+                if (d.fetch) pyyntojaYht += d.fetch.pyyntoja || 0;
+                if (d.tarkkailijat) {
+                    observerKutsutYht += (d.tarkkailijat.resizeKutsut || 0) + (d.tarkkailijat.mutationKutsut || 0);
+                    piilossaYht += (d.tarkkailijat.resizeKutsutPiilossa || 0) + (d.tarkkailijat.mutationKutsutPiilossa || 0);
+                }
             }
-            html += '<div class="rivi">Pyyntoja: ' + pyyntojaYht + '</div>';
 
-            // -- E Ink --
-            html += '<div class="viiva"></div>';
-            html += '<div class="osio-otsikko">E Ink -paivitykset</div>';
-            html += '<div class="rivi">CSS transition: kylla (edistymispalkki)</div>';
-            html += '<div class="rivi">Arvio: kohtalainen</div>';
+            var tilHtml = '';
+            tilHtml += '<div class="stat-row"><span class="stat-label">Fetch-strategia</span><span>network-first</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">Verkkopyyntoja</span><span>' + pyyntojaYht + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">Observer-kutsut</span><span>' + observerKutsutYht + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">..joista piilossa</span><span>' + piilossaYht + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">CSS transitions</span><span>kylla</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">E Ink -arvio</span><span>kohtalainen</span></div>';
+            document.getElementById('tilastot-sisalto').innerHTML = tilHtml;
 
-            document.getElementById('sisalto').innerHTML = html;
+            // -- Footer --
+            var nyt = new Date();
+            var klo = nyt.getHours().toString().padStart(2, '0') + ':' +
+                nyt.getMinutes().toString().padStart(2, '0') + ':' +
+                nyt.getSeconds().toString().padStart(2, '0');
+            document.getElementById('footer').textContent = 'snapshot @ ' + klo + '  |  sivuja seurattu: ' + sivut.length;
         }
 
         // Pyydä data parentilta

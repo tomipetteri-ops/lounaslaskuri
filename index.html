@@ -182,6 +182,10 @@
                         lataukset: sivuLataukset
                     }, '*');
                 }
+            } else if (e.data.type === 'seuraavaDia') {
+                naytaDia(nykyinenDia + 1);
+            } else if (e.data.type === 'edellinenDia') {
+                naytaDia(nykyinenDia - 1 < 0 ? DIAT.length - 1 : nykyinenDia - 1);
             } else if (e.data.type === 'ajatPaivitetty') {
                 // Päivitä DIAT-taulukon ajat muille paitsi kuvat.html (jonka kokonaisaika säätyy automaattisesti, mutta perusaika päivitetään)
                 const laskuriIdx = DIAT.findIndex(dia => dia.tiedosto === 'laskuri.html');

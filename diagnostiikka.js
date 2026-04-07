@@ -115,6 +115,29 @@
         }
     });
 
+    // -- Swipe-navigointi: vasemmalle = seuraava, oikealle = edellinen --
+    var swipeStartX = 0;
+    var swipeStartY = 0;
+    var SWIPE_MIN = 50;   // min px vaakasuuntaan
+    var SWIPE_MAX_Y = 80; // max px pystysuuntaan (ei reagoi scrolliin)
+
+    document.addEventListener('touchstart', function (e) {
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+    });
+
+    document.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - swipeStartX;
+        var dy = e.changedTouches[0].clientY - swipeStartY;
+        if (Math.abs(dy) < SWIPE_MAX_Y && Math.abs(dx) > SWIPE_MIN) {
+            if (dx < 0) {
+                window.parent.postMessage({ type: 'seuraavaDia' }, '*');
+            } else {
+                window.parent.postMessage({ type: 'edellinenDia' }, '*');
+            }
+        }
+    });
+
     // -- Viestiprotokolla: parent pyytaa, child vastaa --
     window.addEventListener('message', function (e) {
         if (e.data && e.data.type === 'keraaDiagnostiikka') {
