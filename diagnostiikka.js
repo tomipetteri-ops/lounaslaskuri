@@ -115,6 +115,33 @@
         }
     });
 
+    // -- SW-tilastot (cache-osumat, verkkopyynnot) MessageChannel-rajapinnalla --
+    function haeSWTilastot() {
+        return new Promise(function (resolve) {
+            if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+                resolve(null);
+                return;
+            }
+            var ch = new MessageChannel();
+            var resolved = false;
+            ch.port1.onmessage = function (ev) {
+                if (resolved) return;
+                resolved = true;
+                resolve(ev.data);
+            };
+            try {
+                navigator.serviceWorker.controller.postMessage({ type: 'haeTilastot' }, [ch.port2]);
+            } catch (e) {
+                resolve(null);
+                return;
+            }
+            setTimeout(function () {
+                if (!resolved) { resolved = true; resolve(null); }
+            }, 500);
+        });
+    }
+    window.__haeSWTilastot = haeSWTilastot;
+
     // -- Viestiprotokolla: parent pyytaa, child vastaa --
     window.addEventListener('message', function (e) {
         if (e.data && e.data.type === 'keraaDiagnostiikka') {
@@ -126,11 +153,15 @@
                     kokonais: performance.memory.totalJSHeapSize
                 };
             }
-            window.parent.postMessage({
-                type: 'diagnostiikka',
-                data: JSON.parse(JSON.stringify(diag)),
-                sivu: diag.sivu
-            }, '*');
+            // Haetaan SW-tilastot ennen vastausta
+            haeSWTilastot().then(function (sw) {
+                diag.sw = sw;
+                window.parent.postMessage({
+                    type: 'diagnostiikka',
+                    data: JSON.parse(JSON.stringify(diag)),
+                    sivu: diag.sivu
+                }, '*');
+            });
         }
     });
 })();

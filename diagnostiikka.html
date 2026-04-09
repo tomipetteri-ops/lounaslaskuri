@@ -191,6 +191,35 @@
             text-align: center;
             margin-top: auto;
         }
+
+        .boox-vinkit {
+            border: 1px dashed #000;
+            padding: 4px 6px;
+            font-size: 10px;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .boox-vinkit b {
+            display: block;
+            margin-bottom: 2px;
+            letter-spacing: 1px;
+        }
+
+        .reset-btn {
+            background: #fff;
+            border: 1px solid #000;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            padding: 2px 8px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .reset-btn:active {
+            background: #000;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -199,6 +228,7 @@
         <div class="header">
             <div class="header-title">RESURSSIDIAGNOSTIIKKA</div>
             <div id="uptime">Kaynnissa: --</div>
+            <button class="reset-btn" id="reset-akku-btn">Reset akkumittari</button>
         </div>
 
         <div class="gauges">
@@ -245,6 +275,14 @@
             </div>
         </div>
 
+        <div class="boox-vinkit">
+            <b>BOOX-VINKIT AKKUKULUTUKSELLE</b>
+            Wake Lock estaa vain naytonsammutuksen — EI Android Dozea.<br>
+            1) Settings &gt; Apps &gt; [selain/PWA] &gt; Battery &gt; Don't optimize<br>
+            2) Settings &gt; Power &gt; Auto Sleep &gt; Never<br>
+            3) Screen off ≠ Doze — Doze pysayttaa CPU:n wake lockista huolimatta
+        </div>
+
         <div class="footer" id="footer">
             snapshot @ --:--:--
         </div>
@@ -279,15 +317,35 @@
             var uptime = parentDiag.uptime || performance.now();
             document.getElementById('uptime').textContent = 'Kaynnissa: ' + muotoileAika(uptime);
 
-            // -- Akku (best effort) --
+            // -- Akku + drain-lasku (lahtotaso talletetaan index.html:ssa) --
             if (navigator.getBattery) {
                 navigator.getBattery().then(function (b) {
                     var taso = Math.round(b.level * 100);
                     document.getElementById('akku-arvo').textContent = taso + '%';
                     document.getElementById('akku-fill').style.width = taso + '%';
-                    var teksti = b.charging ? 'lataa' : '';
-                    if (!b.charging && b.dischargingTime && b.dischargingTime !== Infinity) {
-                        teksti = '~' + muotoileAika(b.dischargingTime * 1000);
+
+                    // Lue lahtotaso localStoragesta (taysi sessionstorage ei toimi iframessa eri kontekstissa,
+                    // mutta localStorage on same-origin jaettu)
+                    var teksti = '';
+                    if (b.charging) {
+                        teksti = 'lataa';
+                    } else {
+                        try {
+                            var alku = JSON.parse(localStorage.getItem('lounas_akku_alku'));
+                            if (alku && typeof alku.taso === 'number' && alku.aikaleima) {
+                                var tunnit = (Date.now() - alku.aikaleima) / 3600000;
+                                if (tunnit < 0.1) {
+                                    teksti = 'alku ' + alku.taso + '% - alkamassa...';
+                                } else {
+                                    var drain = alku.taso - taso;
+                                    var drainH = drain / tunnit;
+                                    var drainVrk = Math.round(drainH * 24);
+                                    var alkuAika = new Date(alku.aikaleima);
+                                    var kello = ('0' + alkuAika.getHours()).slice(-2) + ':' + ('0' + alkuAika.getMinutes()).slice(-2);
+                                    teksti = 'alku ' + alku.taso + '% @ ' + kello + ' | ' + drainH.toFixed(1) + '%/h (~' + drainVrk + '%/vrk)';
+                                }
+                            }
+                        } catch (e) { }
                     }
                     document.getElementById('akku-teksti').textContent = teksti;
                 }).catch(function () {
@@ -452,9 +510,10 @@
             document.getElementById('kuluttajat-sisalto').innerHTML = kulHtml;
 
             // -- Tilastot-gridi --
-            var pyyntojaYht = 0;
+            var pyyntojaYht = 0; // JS fetch() -kutsuja (ei iframe-latauksia)
             var observerKutsutYht = 0;
             var piilossaYht = 0;
+            var swTilastot = null;
             for (var i = 0; i < sivut.length; i++) {
                 var sivuNimi = sivut[i];
                 var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
@@ -464,15 +523,28 @@
                     observerKutsutYht += (d.tarkkailijat.resizeKutsut || 0) + (d.tarkkailijat.mutationKutsut || 0);
                     piilossaYht += (d.tarkkailijat.resizeKutsutPiilossa || 0) + (d.tarkkailijat.mutationKutsutPiilossa || 0);
                 }
+                if (d.sw && !swTilastot) swTilastot = d.sw;
             }
 
+            var strategia = (swTilastot && swTilastot.strategia) || 'tuntematon';
+            var cacheV = (swTilastot && swTilastot.cacheVersion) || '?';
+            var swCache = swTilastot ? swTilastot.cacheOsumat : '--';
+            var swVerkko = swTilastot ? swTilastot.verkkopyynnot : '--';
+            var swVirheet = swTilastot ? swTilastot.verkkoVirheet : '--';
+            var swYht = swTilastot ? (swTilastot.cacheOsumat + swTilastot.verkkopyynnot) : 0;
+            var cacheOsumaP = (swYht > 0) ? ((swTilastot.cacheOsumat / swYht * 100).toFixed(1) + '%') : '--';
+
             var tilHtml = '';
-            tilHtml += '<div class="stat-row"><span class="stat-label">Fetch-strategia</span><span>network-first</span></div>';
-            tilHtml += '<div class="stat-row"><span class="stat-label">Verkkopyyntoja</span><span>' + pyyntojaYht + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">SW-strategia</span><span>' + strategia + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">Cache-versio</span><span>v' + cacheV + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">SW cache-osumat</span><span>' + swCache + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">SW verkkopyynnot</span><span>' + swVerkko + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">SW verkko-virheet</span><span>' + swVirheet + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">Cache-osuma-%</span><span>' + cacheOsumaP + '</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">JS fetch()-kutsut</span><span>' + pyyntojaYht + '</span></div>';
             tilHtml += '<div class="stat-row"><span class="stat-label">Observer-kutsut</span><span>' + observerKutsutYht + '</span></div>';
             tilHtml += '<div class="stat-row"><span class="stat-label">..joista piilossa</span><span>' + piilossaYht + '</span></div>';
-            tilHtml += '<div class="stat-row"><span class="stat-label">CSS transitions</span><span>kylla</span></div>';
-            tilHtml += '<div class="stat-row"><span class="stat-label">E Ink -arvio</span><span>kohtalainen</span></div>';
+            tilHtml += '<div class="stat-row"><span class="stat-label">Palkki-animaatio</span><span>diskreetti JS</span></div>';
             document.getElementById('tilastot-sisalto').innerHTML = tilHtml;
 
             // -- Footer --
@@ -492,6 +564,18 @@
 
         window.onload = function () {
             window.parent.postMessage({ type: 'haeDiagnostiikka' }, '*');
+            var btn = document.getElementById('reset-akku-btn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    if (navigator.getBattery) {
+                        navigator.getBattery().then(function (b) {
+                            var taso = Math.round(b.level * 100);
+                            localStorage.setItem('lounas_akku_alku', JSON.stringify({ taso: taso, aikaleima: Date.now() }));
+                            window.parent.postMessage({ type: 'haeDiagnostiikka' }, '*');
+                        });
+                    }
+                });
+            }
         };
     </script>
 </body>

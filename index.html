@@ -162,25 +162,54 @@
         // Käynnistys
         window.onload = () => naytaDia(0);
 
-        // Screen Wake Lock — estaa Booxia/Androidia nukkumasta (Doze)
-        var wakeLock = null;
-        async function pyydaWakeLock() {
+        // Screen Wake Lock — kanoninen pattern (Chrome/MDN 2026)
+        // HUOM: Wake Lock estaa vain naytonsammutuksen, EI Android Dozea.
+        // Boox Settings -> Apps -> Chrome -> Battery -> Don't optimize on myos tarpeen.
+        let wakeLock = null;
+        async function requestWakeLock() {
             try {
-                if (navigator.wakeLock && navigator.wakeLock.request) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    wakeLock.addEventListener('release', function () {
-                        // Yrita uudelleen jos vapautui (esim. tab vaihto)
-                        wakeLock = null;
-                    });
-                }
-            } catch (e) { }
-        }
-        pyydaWakeLock();
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'visible' && wakeLock === null) {
-                pyydaWakeLock();
+                if (!(navigator.wakeLock && navigator.wakeLock.request)) return;
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', function () {
+                    // Ei nollata — visibility-handler tarkistaa !== null
+                    console.log('[wakelock] released');
+                });
+                console.log('[wakelock] acquired');
+            } catch (err) {
+                console.warn('[wakelock] failed:', err && err.name, err && err.message);
             }
-        });
+        }
+        async function handleVisibilityChange() {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        }
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        requestWakeLock();
+
+        // Akun lahtotason talletus — seuraa drain-nopeutta luotettavasti
+        // Tallennetaan { taso, aikaleima } localStorageen. Jos arvo > 24h vanha,
+        // nollataan (pitka mittaus tuottaa virheellisia paivittaisia lukuja).
+        (async function tallennaAkkuAlku() {
+            if (!navigator.getBattery) return;
+            try {
+                var b = await navigator.getBattery();
+                var taso = Math.round(b.level * 100);
+                var nyt = Date.now();
+                var tallennettu = null;
+                try { tallennettu = JSON.parse(localStorage.getItem('lounas_akku_alku')); } catch (e) { }
+                var ika = tallennettu ? (nyt - tallennettu.aikaleima) : Infinity;
+                // Resetoi jos ei tallennettu, > 24h, tai taso noussut (lataus)
+                if (!tallennettu || ika > 86400000 || taso > tallennettu.taso + 3) {
+                    localStorage.setItem('lounas_akku_alku', JSON.stringify({ taso: taso, aikaleima: nyt }));
+                    console.log('[akku] lahtotaso talletettu:', taso + '%');
+                } else {
+                    console.log('[akku] kaytossa tallennettu lahtotaso:', tallennettu.taso + '% @ ' + new Date(tallennettu.aikaleima).toLocaleTimeString());
+                }
+            } catch (e) {
+                console.warn('[akku] getBattery failed:', e);
+            }
+        })();
 
         // Kuuntele goals.html:n pysäytysviesti
         window.addEventListener('message', function (e) {
