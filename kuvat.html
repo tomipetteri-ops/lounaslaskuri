@@ -86,17 +86,29 @@
                 const tx = db.transaction(STORE_NIMI, 'readwrite');
                 const store = tx.objectStore(STORE_NIMI);
                 const req = store.add({ data: data });
-                req.onsuccess = () => resolve();
+                req.onsuccess = (e) => resolve(e.target.result); // palauta uusi id
                 req.onerror = (e) => reject(e);
             });
         }
 
-        function lataaKuvatDB() {
+        // Palauta vain ID:t — ei dataa. Nain muistissa on aina vain yksi kuva kerrallaan.
+        function lataaKuvienIdtDB() {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(STORE_NIMI, 'readonly');
                 const store = tx.objectStore(STORE_NIMI);
-                const req = store.getAll();
-                req.onsuccess = (e) => resolve(e.target.result.map(k => k.data));
+                const req = store.getAllKeys();
+                req.onsuccess = (e) => resolve(e.target.result || []);
+                req.onerror = (e) => reject(e);
+            });
+        }
+
+        // Hae yhden kuvan data ID:lla — kutsutaan vasta kun kuva nayttetaan.
+        function lataaKuvaDataDB(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NIMI, 'readonly');
+                const store = tx.objectStore(STORE_NIMI);
+                const req = store.get(id);
+                req.onsuccess = (e) => resolve(e.target.result ? e.target.result.data : null);
                 req.onerror = (e) => reject(e);
             });
         }
@@ -112,86 +124,98 @@
         }
 
         // ==========================================
-        // KUVAT
+        // KUVAT — muistioptimoitu: pidetaan muistissa vain ID-lista, ei dataa.
+        // Jokainen paivitaKuva() lataa yhden kuvan IDB:sta ja paastaa edellisen GC:lle.
         // ==========================================
-        let kuvat = [];
+        let kuvaIdt = [];       // vain primary key -lista
         let nykyinenKuva = 0;
         let ajastin = null;
 
-        function lisaaKuvat(event) {
+        async function lisaaKuvat(event) {
             const tiedostot = Array.from(event.target.files);
-            let ladattu = 0;
-            tiedostot.forEach(tiedosto => {
-                const reader = new FileReader();
-                reader.onload = async function (e) {
-                    kuvat.push(e.target.result);
-                    await tallennaKuvaDB(e.target.result);
-                    ladattu++;
-                    if (ladattu === tiedostot.length) {
-                        nykyinenKuva = 0;
-                        paivitaKuva();
-                        kaynnista();
-                        lahetaKuvienAika();
-                    }
-                };
-                reader.readAsDataURL(tiedosto);
-            });
+            for (const tiedosto of tiedostot) {
+                // Lue yksi tiedosto, tallenna ja unohda — ei kasata kaikkia base64-stringeja muistiin
+                const dataUrl = await new Promise(function (resolve, reject) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) { resolve(e.target.result); };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(tiedosto);
+                });
+                const uusiId = await tallennaKuvaDB(dataUrl);
+                kuvaIdt.push(uusiId);
+                // dataUrl lokaali muuttuja → GC vapauttaa saman tien
+            }
+            nykyinenKuva = 0;
+            await paivitaKuva();
+            kaynnista();
+            lahetaKuvienAika();
         }
 
         async function tyhjennaKuvat() {
             if (!confirm('Poistetaanko kaikki kuvat?')) return;
             clearInterval(ajastin);
-            kuvat = [];
+            kuvaIdt = [];
             await tyhjennaDB();
-            paivitaKuva();
+            // Tyhjenna img.src jotta edellinen data URL vapautuu GC:lle
+            document.getElementById('kuva-img').src = '';
+            await paivitaKuva();
             lahetaKuvienAika();
         }
 
-        function paivitaKuva() {
+        async function paivitaKuva() {
             const img = document.getElementById('kuva-img');
             const placeholder = document.getElementById('kuva-placeholder');
             const laskuri = document.getElementById('kuva-laskuri');
 
-            if (kuvat.length > 0) {
-                if (nykyinenKuva >= kuvat.length) nykyinenKuva = 0;
-                img.src = kuvat[nykyinenKuva];
-                img.style.display = 'block';
-                placeholder.style.display = 'none';
-                laskuri.innerText = (nykyinenKuva + 1) + " / " + kuvat.length;
+            if (kuvaIdt.length > 0) {
+                if (nykyinenKuva >= kuvaIdt.length) nykyinenKuva = 0;
+                // Lataa vain tama yksi kuva IDB:sta — ei muita muistissa
+                const data = await lataaKuvaDataDB(kuvaIdt[nykyinenKuva]);
+                if (data) {
+                    img.src = data;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    laskuri.innerText = (nykyinenKuva + 1) + " / " + kuvaIdt.length;
+                } else {
+                    // ID viittaa puuttuvaan tietoon — siivoa
+                    kuvaIdt.splice(nykyinenKuva, 1);
+                    await paivitaKuva();
+                }
             } else {
+                img.src = '';
                 img.style.display = 'none';
                 placeholder.style.display = 'none';
                 laskuri.innerText = "Ei kuvia";
             }
         }
 
-        function seuraavaKuva() {
-            if (kuvat.length === 0) return;
-            nykyinenKuva = (nykyinenKuva + 1) % kuvat.length;
-            paivitaKuva();
+        async function seuraavaKuva() {
+            if (kuvaIdt.length === 0) return;
+            nykyinenKuva = (nykyinenKuva + 1) % kuvaIdt.length;
+            await paivitaKuva();
             // Älä lähetä lahetaKuvienAika() – aiheuttaisi iframe-latauksen ja katkaisisi kuvien kierron
         }
 
         function kaynnista() {
             clearInterval(ajastin);
-            if (kuvat.length > 1) {
+            if (kuvaIdt.length > 1) {
                 ajastin = setInterval(seuraavaKuva, kuvaAika * 1000);
             }
         }
 
         // ==========================================
-        // KÄYNNISTYS — lataa tallennetut kuvat
+        // KÄYNNISTYS — lataa vain ID:t, data per-kuva on-demand
         // ==========================================
         window.onload = async function () {
             db = await avaaDB();
-            kuvat = await lataaKuvatDB();
-            paivitaKuva();
+            kuvaIdt = await lataaKuvienIdtDB();
+            await paivitaKuva();
             kaynnista();
             lahetaKuvienAika();
         };
 
         function lahetaKuvienAika() {
-            const totalTime = kuvat.length > 0 ? kuvat.length * kuvaAika : kuvaAika; // Tyhjällä väh. asetus-arvo ennen diavaihtoa
+            const totalTime = kuvaIdt.length > 0 ? kuvaIdt.length * kuvaAika : kuvaAika;
             window.parent.postMessage({ type: 'kuvienAika', aika: totalTime }, '*');
         }
 

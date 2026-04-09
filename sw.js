@@ -1,4 +1,4 @@
-var CACHE_VERSION = 9;
+var CACHE_VERSION = 10;
 var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
 var FETCH_STRATEGIA = 'stale-while-revalidate';
 var URLS = [

@@ -42,14 +42,22 @@
     };
 
     // -- setTimeout / clearTimeout --
+    // Vuodonesto: poista entry heti kun timeout laukeaa tai clearTimeout kutsutaan.
+    // Aiempi versio vain merkitsi aktiivinen=false, jolloin array kasvoi rajattomasti.
     var _setTimeout = window.setTimeout;
     var _clearTimeout = window.clearTimeout;
+
+    function poistaEntry(arr, entry) {
+        var idx = arr.indexOf(entry);
+        if (idx >= 0) arr.splice(idx, 1);
+    }
 
     window.setTimeout = function (fn, ms) {
         var entry = { ms: ms || 0, kutsut: 0, luotu: Date.now(), aktiivinen: true };
         var wrapped = function () {
             entry.kutsut++;
             entry.aktiivinen = false;
+            poistaEntry(diag.ajastimet.timeout, entry);
             fn();
         };
         var id = _setTimeout(wrapped, ms);
@@ -59,9 +67,11 @@
     };
 
     window.clearTimeout = function (id) {
-        for (var i = 0; i < diag.ajastimet.timeout.length; i++) {
-            if (diag.ajastimet.timeout[i].id === id) {
-                diag.ajastimet.timeout[i].aktiivinen = false;
+        var arr = diag.ajastimet.timeout;
+        for (var i = arr.length - 1; i >= 0; i--) {
+            if (arr[i].id === id) {
+                arr.splice(i, 1);
+                break;
             }
         }
         return _clearTimeout(id);
