@@ -40,6 +40,22 @@
             z-index: 100;
             transition: none;
         }
+
+        /* VAPAAEHTOINEN testileima - poista kun vahvistettu paivitys */
+        #testi-leima {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: black;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            padding: 10px 24px;
+            z-index: 9999;
+            pointer-events: none;
+            font-family: 'Courier New', Courier, monospace;
+        }
     </style>
 </head>
 
@@ -47,6 +63,7 @@
     <div style="width: 100vw; height: 100vh;">
         <iframe id="dia-kehys" src="laskuri.html"></iframe>
         <div id="edistymispalkki" style="width:0%"></div>
+        <div id="testi-leima">TESTING v1</div>
     </div>
 
     <script src="navigointi.js"></script>

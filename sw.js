@@ -1,4 +1,4 @@
-var CACHE_VERSION = 4;
+var CACHE_VERSION = 5;
 var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
 var URLS = [
     './',
