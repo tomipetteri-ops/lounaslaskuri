@@ -1,6 +1,6 @@
-var CACHE_VERSION = 11;
+var CACHE_VERSION = 12;
 var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
-var FETCH_STRATEGIA = 'stale-while-revalidate';
+var FETCH_STRATEGIA = 'cache-first';
 var URLS = [
     './',
     './index.html',
@@ -48,15 +48,19 @@ self.addEventListener('activate', function (e) {
     self.clients.claim();
 });
 
-// stale-while-revalidate: vastaa cachesta heti, paivittaa taustalla.
-// E Inkilla / akkukriittisilla laitteilla tama valttaa turhia radioherattamisia
-// joka iframe-reloadilla (~7000/vrk).
+// cache-first: vastaa cachesta, EI revalidoi taustalla.
+// Paivitykset tulevat vain CACHE_VERSION-bumpilla (uusi SW install).
+// Poistaa ~32 turhaa WiFi-heratysta/min jotka stale-while-revalidate aiheutti.
 self.addEventListener('fetch', function (e) {
-    // Kasittele vain GET-pyynnot ja same-origin resurssit
     if (e.request.method !== 'GET') return;
     e.respondWith(
         caches.match(e.request).then(function (cached) {
-            var fetchPromise = fetch(e.request).then(function (response) {
+            if (cached) {
+                tilastot.cacheOsumat++;
+                return cached;
+            }
+            // Ei cachessa — hae verkosta ja tallenna
+            return fetch(e.request).then(function (response) {
                 tilastot.verkkopyynnot++;
                 var clone = response.clone();
                 caches.open(CACHE_NAME).then(function (cache) {
@@ -65,13 +69,7 @@ self.addEventListener('fetch', function (e) {
                 return response;
             }).catch(function () {
                 tilastot.verkkoVirheet++;
-                return cached;
             });
-            if (cached) {
-                tilastot.cacheOsumat++;
-                return cached;
-            }
-            return fetchPromise;
         })
     );
 });

@@ -30,18 +30,7 @@
             display: block;
         }
 
-        /* Edistymispalkki alareunassa */
-        #edistymispalkki {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            height: 4px;
-            background: black;
-            z-index: 100;
-            transition: none;
-        }
-
-        /* VAPAAEHTOINEN testileima - poista kun vahvistettu paivitys */
+/* VAPAAEHTOINEN testileima - poista kun vahvistettu paivitys */
         #testi-leima {
             position: fixed;
             bottom: 20vh;
@@ -62,7 +51,6 @@
 <body>
     <div style="width: 100vw; height: 100vh;">
         <iframe id="dia-kehys" src="laskuri.html"></iframe>
-        <div id="edistymispalkki" style="width:0%"></div>
         <div id="testi-leima">TESTI v4</div>
     </div>
 
@@ -107,23 +95,6 @@
 
         let nykyinenDia = 0;
         let ajastin = null;
-        let palkkiAjastin = null;
-
-        function kaynnistaEdistymispalkki(aika) {
-            var palkki = document.getElementById('edistymispalkki');
-            clearInterval(palkkiAjastin);
-            palkki.style.transition = 'none';
-            palkki.style.width = '0%';
-            var askeleet = Math.max(10, Math.floor(aika));
-            var vali = (aika * 1000) / askeleet;
-            var askel = 0;
-            palkkiAjastin = setInterval(function () {
-                askel++;
-                palkki.style.width = (askel / askeleet * 100) + '%';
-                if (askel >= askeleet) clearInterval(palkkiAjastin);
-            }, vali);
-        }
-
         function naytaDia(indeksi) {
             nykyinenDia = indeksi % DIAT.length;
             const dia = DIAT[nykyinenDia];
@@ -150,9 +121,6 @@
                     }
                 }, 500); // Odotetaan että iframe on ladannut
             }
-
-            // Edistymispalkki — diskreetit askeleet (E Ink -optimointi)
-            kaynnistaEdistymispalkki(dia.aika);
 
             // Ajastin seuraavaan diaan
             clearTimeout(ajastin);
@@ -215,7 +183,6 @@
         window.addEventListener('message', function (e) {
             if (e.data === 'pysayta') {
                 clearTimeout(ajastin);
-                clearInterval(palkkiAjastin);
             } else if (e.data === 'kaynnista') {
                 // Jatka diaesitystä seuraavasta diasta
                 naytaDia(nykyinenDia + 1);
@@ -229,7 +196,6 @@
                     // ja katkaisisi kuvien kierron. Päivitä vain ajastin ja palkki.
                     if (nykyinenDia === kuvatDiaIndex) {
                         const dia = DIAT[kuvatDiaIndex];
-                        kaynnistaEdistymispalkki(dia.aika);
                         clearTimeout(ajastin);
                         ajastin = setTimeout(() => naytaDia(nykyinenDia + 1), dia.aika * 1000);
                     }
