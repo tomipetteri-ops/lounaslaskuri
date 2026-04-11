@@ -40,7 +40,7 @@
         // ==========================================
         // ASETUKSET
         // ==========================================
-        const paivitysvaliSekunteina = 60;
+        // Päivitysväli poistettu — update() kutsutaan kerran ladattaessa, ei intervallia
 
         // Paula: vertailuarvo (loka-joulu 2025 ka.) 1199.32 - kuukauden kulutus
         // Lahde: Actual Budget (eri kategoriat kuin Tomi)
@@ -122,12 +122,7 @@
 
         window.onload = function () {
             update();
-            setInterval(update, paivitysvaliSekunteina * 1000);
         };
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") update();
-        });
 
         window.addEventListener('message', function (event) {
             if (event.data === 'pysayta') {

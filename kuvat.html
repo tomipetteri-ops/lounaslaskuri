@@ -57,7 +57,7 @@
         // ==========================================
         // ASETUKSET
         // ==========================================
-        let kuvaAika = 5; // sekuntia per kuva, oletus. Saadaan index.html:ltä.
+        // kuvaAika poistettu — yksi kuva per kierros, aika säädetään index.html:ssä
 
         // ==========================================
         // INDEXEDDB
@@ -129,7 +129,6 @@
         // ==========================================
         let kuvaIdt = [];       // vain primary key -lista
         let nykyinenKuva = 0;
-        let ajastin = null;
 
         async function lisaaKuvat(event) {
             const tiedostot = Array.from(event.target.files);
@@ -147,19 +146,17 @@
             }
             nykyinenKuva = 0;
             await paivitaKuva();
-            kaynnista();
-            lahetaKuvienAika();
+            localStorage.setItem('lounas_kuva_indeksi', kuvaIdt.length > 1 ? 1 : 0);
         }
 
         async function tyhjennaKuvat() {
             if (!confirm('Poistetaanko kaikki kuvat?')) return;
-            clearInterval(ajastin);
             kuvaIdt = [];
             await tyhjennaDB();
             // Tyhjenna img.src jotta edellinen data URL vapautuu GC:lle
             document.getElementById('kuva-img').src = '';
             await paivitaKuva();
-            lahetaKuvienAika();
+            localStorage.setItem('lounas_kuva_indeksi', '0');
         }
 
         async function paivitaKuva() {
@@ -189,47 +186,26 @@
             }
         }
 
-        async function seuraavaKuva() {
-            if (kuvaIdt.length === 0) return;
-            nykyinenKuva = (nykyinenKuva + 1) % kuvaIdt.length;
-            await paivitaKuva();
-            // Älä lähetä lahetaKuvienAika() – aiheuttaisi iframe-latauksen ja katkaisisi kuvien kierron
-        }
-
-        function kaynnista() {
-            clearInterval(ajastin);
-            if (kuvaIdt.length > 1) {
-                ajastin = setInterval(seuraavaKuva, kuvaAika * 1000);
-            }
-        }
-
         // ==========================================
-        // KÄYNNISTYS — lataa vain ID:t, data per-kuva on-demand
+        // KÄYNNISTYS — lataa vain ID:t, näytä yksi kuva per kierros
         // ==========================================
         window.onload = async function () {
             db = await avaaDB();
             kuvaIdt = await lataaKuvienIdtDB();
-            await paivitaKuva();
-            kaynnista();
-            lahetaKuvienAika();
-        };
 
-        function lahetaKuvienAika() {
-            const totalTime = kuvaIdt.length > 0 ? kuvaIdt.length * kuvaAika : kuvaAika;
-            window.parent.postMessage({ type: 'kuvienAika', aika: totalTime }, '*');
-        }
-
-        window.addEventListener('message', function (e) {
-            if (e.data.type === 'asetaKuvaAika') {
-                const uusiAika = parseInt(e.data.aika, 10);
-                if (uusiAika && uusiAika !== kuvaAika) {
-                    kuvaAika = uusiAika;
-                    console.log("Kuvat saivat uuden ajan isännältä:", kuvaAika, "s per kuva");
-                    lahetaKuvienAika();
-                    kaynnista(); // Päivitetään ajastimen nopeus uutta aikaa vastaavaksi
-                }
+            // Lue edellinen indeksi localStoragesta
+            var tallennettu = parseInt(localStorage.getItem('lounas_kuva_indeksi'), 10);
+            if (!isNaN(tallennettu) && tallennettu < kuvaIdt.length) {
+                nykyinenKuva = tallennettu;
             }
-        });
+
+            await paivitaKuva();
+
+            // Tallenna seuraava indeksi valmiiksi
+            if (kuvaIdt.length > 0) {
+                localStorage.setItem('lounas_kuva_indeksi', (nykyinenKuva + 1) % kuvaIdt.length);
+            }
+        };
     </script>
 </body>
 

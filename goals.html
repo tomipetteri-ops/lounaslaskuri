@@ -323,18 +323,18 @@
         </div>
 
         <div class="popup" id="asetukset-popup" style="right: 0;">
-            <div class="popup-vaihtoehto otsikko">Ajat (sekuntia)</div>
+            <div class="popup-vaihtoehto otsikko">Ajat (minuuttia)</div>
             <div class="asetus-rivi">
                 <span>Laskuri:</span>
-                <input type="number" id="asetus-laskuri" min="1" max="300" value="5">
+                <input type="number" id="asetus-laskuri" min="1" max="300" value="1">
             </div>
             <div class="asetus-rivi">
                 <span>Kuvat:</span>
-                <input type="number" id="asetus-kuvat" min="1" max="300" value="5">
+                <input type="number" id="asetus-kuvat" min="1" max="300" value="10">
             </div>
             <div class="asetus-rivi">
                 <span>Goals:</span>
-                <input type="number" id="asetus-goals" min="1" max="300" value="5">
+                <input type="number" id="asetus-goals" min="1" max="300" value="1">
             </div>
             <div class="asetus-rivi">
                 <span>Diagnostiikka:</span>
@@ -497,9 +497,9 @@
         }
 
         function tallennaAsetukset() {
-            var laskuri = parseInt(document.getElementById('asetus-laskuri').value, 10) || 5;
-            var kuvat = parseInt(document.getElementById('asetus-kuvat').value, 10) || 5;
-            var goals = parseInt(document.getElementById('asetus-goals').value, 10) || 5;
+            var laskuri = parseInt(document.getElementById('asetus-laskuri').value, 10) || 1;
+            var kuvat = parseInt(document.getElementById('asetus-kuvat').value, 10) || 10;
+            var goals = parseInt(document.getElementById('asetus-goals').value, 10) || 1;
 
             var ajat = { laskuri: laskuri, kuvat: kuvat, goals: goals };
             localStorage.setItem('lounas_ajat', JSON.stringify(ajat));
