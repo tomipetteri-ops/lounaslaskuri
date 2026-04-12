@@ -156,7 +156,7 @@
     window.addEventListener('message', function (e) {
         if (e.data && e.data.type === 'keraaDiagnostiikka') {
             // Lisaa reaaliaikaiset arvot
-            diag.uptime = performance.now();
+            diag.uptime = Date.now() - diag.kaynnistys;
             if (performance.memory) {
                 diag.muisti = {
                     kaytetty: performance.memory.usedJSHeapSize,

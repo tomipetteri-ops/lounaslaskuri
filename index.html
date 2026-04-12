@@ -76,7 +76,7 @@
 
         // Diagnostiikka-dia ehdollisesti
         if (localStorage.getItem('lounas_diagnostiikka') === 'true') {
-            DIAT.push({ tiedosto: 'diagnostiikka.html', aika: lounasAjat.diagnostiikka || 8 });
+            DIAT.push({ tiedosto: 'diagnostiikka.html', aika: lounasAjat.diagnostiikka || 5 });
         }
 
         // Diagnostiikka: metriikoiden keruu
@@ -185,7 +185,7 @@
                         kokonais: performance.memory.totalJSHeapSize
                     };
                 }
-                parentDiag.uptime = performance.now();
+                parentDiag.uptime = Date.now() - (window.__diag ? window.__diag.kaynnistys : Date.now());
                 var iframe = document.getElementById('dia-kehys');
                 if (iframe.contentWindow) {
                     iframe.contentWindow.postMessage({
