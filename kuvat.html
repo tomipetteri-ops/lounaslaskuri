@@ -26,10 +26,6 @@
             flex-shrink: 0;
         }
 
-        .kuva-info label {
-            cursor: pointer;
-        }
-
         .kuva-info span {
             cursor: pointer;
         }
@@ -38,18 +34,16 @@
 
 <body>
     <div class="kuvat-sivu">
-        <div class="kuva-nakymä" id="kuva-nakymä">
-            <div class="kuva-placeholder" id="kuva-placeholder" style="display:none;">
-            </div>
+        <div class="kuva-nakyma kuva-nakymä" id="kuva-nakyma">
+            <div class="kuva-placeholder" id="kuva-placeholder" style="display:none;"></div>
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
         <div class="kuva-info">
             <span id="kuva-laskuri">Ladataan...</span>
-            <label for="kuva-input-lisaa" onclick="try{window.parent.postMessage('pysayta','*')}catch(e){}">+ Lisää
-                kuvia</label>
+            <span onclick="avaaKuvaValitsin()">+ Lis&auml;&auml; kuvia</span>
             <input type="file" id="kuva-input-lisaa" accept="image/*" multiple onchange="lisaaKuvat(event)"
                 style="display:none;">
-            <span onclick="tyhjennaKuvat()">🗑 Tyhjennä</span>
+            <span onclick="tyhjennaKuvat()">Tyhjenna</span>
         </div>
     </div>
 
@@ -57,7 +51,7 @@
         // ==========================================
         // ASETUKSET
         // ==========================================
-        // kuvaAika poistettu — yksi kuva per kierros, aika säädetään index.html:ssä
+        // Kuvasivun koko esitysaika tulee index.html:sta.
 
         // ==========================================
         // INDEXEDDB
@@ -86,12 +80,11 @@
                 const tx = db.transaction(STORE_NIMI, 'readwrite');
                 const store = tx.objectStore(STORE_NIMI);
                 const req = store.add({ data: data });
-                req.onsuccess = (e) => resolve(e.target.result); // palauta uusi id
+                req.onsuccess = (e) => resolve(e.target.result);
                 req.onerror = (e) => reject(e);
             });
         }
 
-        // Palauta vain ID:t — ei dataa. Nain muistissa on aina vain yksi kuva kerrallaan.
         function lataaKuvienIdtDB() {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(STORE_NIMI, 'readonly');
@@ -102,7 +95,6 @@
             });
         }
 
-        // Hae yhden kuvan data ID:lla — kutsutaan vasta kun kuva nayttetaan.
         function lataaKuvaDataDB(id) {
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(STORE_NIMI, 'readonly');
@@ -124,36 +116,74 @@
         }
 
         // ==========================================
-        // KUVAT — muistioptimoitu: pidetaan muistissa vain ID-lista, ei dataa.
-        // Jokainen paivitaKuva() lataa yhden kuvan IDB:sta ja paastaa edellisen GC:lle.
+        // KUVAT
         // ==========================================
-        let kuvaIdt = [];       // vain primary key -lista
+        let kuvaIdt = [];
         let nykyinenKuva = 0;
+        let kuvaValitsinAuki = false;
+        let kuvaKasittelyKaynnissa = false;
+
+        function pysaytaDia() {
+            try { window.parent.postMessage('pysayta', '*'); } catch (e) { }
+        }
+
+        function jatkaDia() {
+            try { window.parent.postMessage('jatka', '*'); } catch (e) { }
+        }
+
+        function avaaKuvaValitsin() {
+            const input = document.getElementById('kuva-input-lisaa');
+            if (!input || kuvaKasittelyKaynnissa) return;
+            kuvaValitsinAuki = true;
+            pysaytaDia();
+            input.click();
+        }
+
+        window.addEventListener('focus', function () {
+            if (!kuvaValitsinAuki || kuvaKasittelyKaynnissa) return;
+            // Jos valitsin suljettiin ilman uusia tiedostoja, jatka diaesitysta.
+            setTimeout(function () {
+                if (kuvaValitsinAuki && !kuvaKasittelyKaynnissa) {
+                    kuvaValitsinAuki = false;
+                    jatkaDia();
+                }
+            }, 400);
+        });
 
         async function lisaaKuvat(event) {
-            const tiedostot = Array.from(event.target.files);
-            for (const tiedosto of tiedostot) {
-                // Lue yksi tiedosto, tallenna ja unohda — ei kasata kaikkia base64-stringeja muistiin
-                const dataUrl = await new Promise(function (resolve, reject) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) { resolve(e.target.result); };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(tiedosto);
-                });
-                const uusiId = await tallennaKuvaDB(dataUrl);
-                kuvaIdt.push(uusiId);
-                // dataUrl lokaali muuttuja → GC vapauttaa saman tien
+            const tiedostot = Array.from(event.target.files || []);
+            kuvaValitsinAuki = false;
+            kuvaKasittelyKaynnissa = true;
+
+            try {
+                if (tiedostot.length === 0) return;
+
+                for (const tiedosto of tiedostot) {
+                    const dataUrl = await new Promise(function (resolve, reject) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) { resolve(e.target.result); };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(tiedosto);
+                    });
+
+                    const uusiId = await tallennaKuvaDB(dataUrl);
+                    kuvaIdt.push(uusiId);
+                }
+
+                nykyinenKuva = 0;
+                await paivitaKuva();
+                localStorage.setItem('lounas_kuva_indeksi', kuvaIdt.length > 1 ? '1' : '0');
+            } finally {
+                kuvaKasittelyKaynnissa = false;
+                event.target.value = '';
+                jatkaDia();
             }
-            nykyinenKuva = 0;
-            await paivitaKuva();
-            localStorage.setItem('lounas_kuva_indeksi', kuvaIdt.length > 1 ? 1 : 0);
         }
 
         async function tyhjennaKuvat() {
             if (!confirm('Poistetaanko kaikki kuvat?')) return;
             kuvaIdt = [];
             await tyhjennaDB();
-            // Tyhjenna img.src jotta edellinen data URL vapautuu GC:lle
             document.getElementById('kuva-img').src = '';
             await paivitaKuva();
             localStorage.setItem('lounas_kuva_indeksi', '0');
@@ -166,15 +196,14 @@
 
             if (kuvaIdt.length > 0) {
                 if (nykyinenKuva >= kuvaIdt.length) nykyinenKuva = 0;
-                // Lataa vain tama yksi kuva IDB:sta — ei muita muistissa
+
                 const data = await lataaKuvaDataDB(kuvaIdt[nykyinenKuva]);
                 if (data) {
                     img.src = data;
                     img.style.display = 'block';
                     placeholder.style.display = 'none';
-                    laskuri.innerText = (nykyinenKuva + 1) + " / " + kuvaIdt.length;
+                    laskuri.innerText = (nykyinenKuva + 1) + ' / ' + kuvaIdt.length;
                 } else {
-                    // ID viittaa puuttuvaan tietoon — siivoa
                     kuvaIdt.splice(nykyinenKuva, 1);
                     await paivitaKuva();
                 }
@@ -182,28 +211,26 @@
                 img.src = '';
                 img.style.display = 'none';
                 placeholder.style.display = 'none';
-                laskuri.innerText = "Ei kuvia";
+                laskuri.innerText = 'Ei kuvia';
             }
         }
 
         // ==========================================
-        // KÄYNNISTYS — lataa vain ID:t, näytä yksi kuva per kierros
+        // KAYNNISTYS
         // ==========================================
         window.onload = async function () {
             db = await avaaDB();
             kuvaIdt = await lataaKuvienIdtDB();
 
-            // Lue edellinen indeksi localStoragesta
-            var tallennettu = parseInt(localStorage.getItem('lounas_kuva_indeksi'), 10);
+            const tallennettu = parseInt(localStorage.getItem('lounas_kuva_indeksi'), 10);
             if (!isNaN(tallennettu) && tallennettu < kuvaIdt.length) {
                 nykyinenKuva = tallennettu;
             }
 
             await paivitaKuva();
 
-            // Tallenna seuraava indeksi valmiiksi
             if (kuvaIdt.length > 0) {
-                localStorage.setItem('lounas_kuva_indeksi', (nykyinenKuva + 1) % kuvaIdt.length);
+                localStorage.setItem('lounas_kuva_indeksi', String((nykyinenKuva + 1) % kuvaIdt.length));
             }
         };
     </script>
