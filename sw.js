@@ -1,4 +1,4 @@
-var CACHE_VERSION = 17;
+var CACHE_VERSION = 18;
 var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
 var FETCH_STRATEGIA = 'cache-first';
 var URLS = [
@@ -9,6 +9,7 @@ var URLS = [
     './kuvat.html',
     './style.css',
     './navigointi.js',
+    './versio.js',
     './diagnostiikka.html',
     './diagnostiikka.js'
 ];
