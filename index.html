@@ -54,7 +54,7 @@
         // ==========================================
         let lounasAjat = { laskuri: 1, kuvat: 1, goals: 1 };
         // Tyhjenna vanhat asetukset kun cache-versio paivittyy
-        var ASETUKSET_VERSIO = 16;
+        var ASETUKSET_VERSIO = 18;
         var edellinenVersio = parseInt(localStorage.getItem('lounas_asetukset_versio') || '0', 10);
         if (edellinenVersio < ASETUKSET_VERSIO) {
             localStorage.removeItem('lounas_ajat');
