@@ -1,4 +1,4 @@
-var CACHE_VERSION = 15;
+var CACHE_VERSION = 16;
 var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
 var FETCH_STRATEGIA = 'cache-first';
 var URLS = [
