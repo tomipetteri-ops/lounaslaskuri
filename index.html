@@ -31,6 +31,16 @@
         }
 
 /* VAPAAEHTOINEN testileima - poista kun vahvistettu paivitys */
+.testileima {
+    position: fixed;
+    bottom: 2px;
+    right: 5px;
+    font-size: 10px;
+    opacity: 0.3;
+    pointer-events: none;
+    color: gray;
+    z-index: 9999;
+}
     </style>
 </head>
 
@@ -38,6 +48,7 @@
     <div style="width: 100vw; height: 100vh;">
         <iframe id="dia-kehys" src="laskuri.html"></iframe>
     </div>
+    <div class="testileima">TESTI v6</div>
 
     <script src="navigointi.js"></script>
     <script>
@@ -52,7 +63,7 @@
         // ==========================================
         //  ASETUKSET — luetaan localStoragesta
         // ==========================================
-        let lounasAjat = { laskuri: 1, kuvat: 10, goals: 1 };
+        let lounasAjat = { laskuri: 1, kuvat: 1, goals: 1 };
         try {
             const tallennettu = localStorage.getItem('lounas_ajat');
             if (tallennettu) {
@@ -62,7 +73,7 @@
 
         const DIAT = [
             { tiedosto: 'laskuri.html', aika: lounasAjat.laskuri || 1 },
-            { tiedosto: 'kuvat.html', aika: lounasAjat.kuvat || 10 },
+            { tiedosto: 'kuvat.html', aika: lounasAjat.kuvat || 1 },
             { tiedosto: 'goals.html', aika: lounasAjat.goals || 1 },
         ];
 
@@ -160,6 +171,11 @@
             } else if (e.data === 'kaynnista') {
                 // Jatka diaesitystä seuraavasta diasta
                 naytaDia(nykyinenDia + 1);
+            } else if (e.data === 'jatka') {
+                // Jatka ajastinta nykyisella dialla (ei vaihda seuraavaan)
+                clearTimeout(ajastin);
+                var dia = DIAT[nykyinenDia];
+                ajastin = setTimeout(() => naytaDia(nykyinenDia + 1), dia.aika * 60 * 1000);
             } else if (e.data.type === 'diagnostiikka') {
                 // Tallenna lapsi-iframen diagnostiikkadata
                 __diagKooste[e.data.sivu] = e.data.data;
@@ -194,7 +210,7 @@
                 if (goalsIdx !== -1) DIAT[goalsIdx].aika = e.data.goals || 1;
 
                 const kuvatIdx = DIAT.findIndex(dia => dia.tiedosto === 'kuvat.html');
-                if (kuvatIdx !== -1) DIAT[kuvatIdx].aika = e.data.kuvat || 10;
+                if (kuvatIdx !== -1) DIAT[kuvatIdx].aika = e.data.kuvat || 1;
 
                 console.log(`Ajat päivitetty: laskuri ${DIAT[laskuriIdx].aika}min, goals ${DIAT[goalsIdx].aika}min, kuvat ${DIAT[kuvatIdx].aika}min`);
             }

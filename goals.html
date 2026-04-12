@@ -330,7 +330,7 @@
             </div>
             <div class="asetus-rivi">
                 <span>Kuvat:</span>
-                <input type="number" id="asetus-kuvat" min="1" max="300" value="10">
+                <input type="number" id="asetus-kuvat" min="1" max="300" value="1">
             </div>
             <div class="asetus-rivi">
                 <span>Goals:</span>
@@ -365,6 +365,7 @@
             document.getElementById('rivi-overlay').classList.remove('auki');
             valittuRivi = null;
             valittuRiviHenkilo = null;
+            jatkaDia();
         }
 
         function poistaValittu() {
@@ -405,6 +406,9 @@
         function pysaytaDia() {
             try { window.parent.postMessage('pysayta', '*'); } catch (e) { }
         }
+        function jatkaDia() {
+            try { window.parent.postMessage('jatka', '*'); } catch (e) { }
+        }
 
         function autoTallenna(h) {
             var lista = document.getElementById(h + '-lista');
@@ -428,6 +432,7 @@
             ['lisaa-popup', 'toiminto-popup', 'tallenna-popup', 'asetukset-popup'].forEach(function (id) {
                 document.getElementById(id).classList.remove('auki');
             });
+            jatkaDia();
         }
 
         document.addEventListener('click', function (e) {
@@ -498,7 +503,7 @@
 
         function tallennaAsetukset() {
             var laskuri = parseInt(document.getElementById('asetus-laskuri').value, 10) || 1;
-            var kuvat = parseInt(document.getElementById('asetus-kuvat').value, 10) || 10;
+            var kuvat = parseInt(document.getElementById('asetus-kuvat').value, 10) || 1;
             var goals = parseInt(document.getElementById('asetus-goals').value, 10) || 1;
 
             var ajat = { laskuri: laskuri, kuvat: kuvat, goals: goals };
@@ -558,7 +563,7 @@
             });
         };
     </script>
-    <div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none;">v1.2_0304
+    <div style="position:fixed; bottom:2px; right:5px; font-size:10px; opacity:0.3; pointer-events:none;">TESTI v6
     </div>
 </body>
 
