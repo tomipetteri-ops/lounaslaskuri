@@ -314,7 +314,8 @@
             var lataukset = data.lataukset || {};
 
             // -- Uptime --
-            var uptime = parentDiag.uptime || performance.now();
+            // uptime === 0 on validi arvo (juuri kaynnistynyt) — ala kohtele falsyna
+            var uptime = (typeof parentDiag.uptime === 'number') ? parentDiag.uptime : performance.now();
             document.getElementById('uptime').textContent = 'Kaynnissa: ' + muotoileAika(uptime);
 
             // -- Akku + drain-lasku (lahtotaso talletetaan index.html:ssa) --
@@ -360,7 +361,7 @@
                 var kaytettyMB = muotoileMB(parentDiag.muisti.kaytetty);
                 var kokonaisMB = muotoileMB(parentDiag.muisti.kokonais);
                 document.getElementById('muisti-arvo').textContent = kaytettyMB + ' MB';
-                var muistiOsuus = parentDiag.muisti.kaytetty / parentDiag.muisti.kokonais;
+                var muistiOsuus = parentDiag.muisti.kokonais > 0 ? parentDiag.muisti.kaytetty / parentDiag.muisti.kokonais : 0;
                 document.getElementById('muisti-fill').style.width = palkki(muistiOsuus) + '%';
                 document.getElementById('muisti-teksti').textContent = kaytettyMB + ' / ' + kokonaisMB;
             }

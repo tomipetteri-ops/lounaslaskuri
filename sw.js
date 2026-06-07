@@ -1,4 +1,4 @@
-var CACHE_VERSION = 22;
+var CACHE_VERSION = 23;
 var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
 var FETCH_STRATEGIA = 'cache-first';
 var URLS = [
@@ -10,6 +10,7 @@ var URLS = [
     './style.css',
     './navigointi.js',
     './versio.js',
+    './saastolaskuri.js',
     './diagnostiikka.html',
     './diagnostiikka.js'
 ];
@@ -63,13 +64,25 @@ self.addEventListener('fetch', function (e) {
             // Ei cachessa — hae verkosta ja tallenna
             return fetch(e.request).then(function (response) {
                 tilastot.verkkopyynnot++;
-                var clone = response.clone();
-                caches.open(CACHE_NAME).then(function (cache) {
-                    cache.put(e.request, clone);
-                });
+                // Tallenna vain onnistuneet, samasta originista tulevat vastaukset.
+                // Muuten ohimeneva 404/500 (tai opaque-vastaus) jaisi valimuistiin
+                // seuraavaan CACHE_VERSION-bumppiin asti.
+                if (response && response.ok && response.type === 'basic') {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(function (cache) {
+                        cache.put(e.request, clone);
+                    });
+                }
                 return response;
             }).catch(function () {
                 tilastot.verkkoVirheet++;
+                // Offline eika valimuistissa: palauta selkea virhevastaus.
+                // respondWith(undefined) tuottaisi rikkinaisen verkkovirheen.
+                return new Response('Offline eika valimuistissa', {
+                    status: 503,
+                    statusText: 'Offline',
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                });
             });
         })
     );

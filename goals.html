@@ -385,6 +385,11 @@
                 span.contentEditable = true;
                 span.focus();
                 var blurDone = false;
+                // onKey on funktioesittely (ei nimetty lauseke), jotta onBlur voi poistaa sen.
+                function onKey(e) {
+                    // Enter vahvistaa: blur laukaisee siivouksen, joka poistaa molemmat kuuntelijat.
+                    if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
+                }
                 span.addEventListener('blur', function onBlur() {
                     if (blurDone) return;
                     blurDone = true;
@@ -392,11 +397,9 @@
                     if (!span.innerText.trim() && rivi.parentNode) { rivi.remove(); }
                     autoTallenna(h);
                     span.removeEventListener('blur', onBlur);
-                });
-                span.addEventListener('keydown', function onKey(e) {
-                    if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
                     span.removeEventListener('keydown', onKey);
                 });
+                span.addEventListener('keydown', onKey);
             }
         }
 
@@ -428,11 +431,12 @@
             }
         }
 
-        function suljeKaikki() {
+        function suljeKaikki(jatka) {
             ['lisaa-popup', 'toiminto-popup', 'tallenna-popup', 'asetukset-popup'].forEach(function (id) {
                 document.getElementById(id).classList.remove('auki');
             });
-            jatkaDia();
+            // jatka === false: kutsuttu latauksesta, ei spammata 'jatka'-viestia parentille
+            if (jatka !== false) jatkaDia();
         }
 
         document.addEventListener('click', function (e) {
@@ -451,13 +455,19 @@
         }
 
         function lisaaRivi(h, teksti, alaTallenna) {
-            suljeKaikki();
+            suljeKaikki(alaTallenna);
             if (alaTallenna !== false) pysaytaDia();
             var lista = document.getElementById(h + '-lista');
             var rivi = document.createElement('div');
             rivi.className = 'goals-rivi';
             var span = document.createElement('span');
             span.innerText = teksti || '';
+            // Klikkaus avaa muokkaa/poista-popupin — myos Enterilla juuri lisatylle
+            // riville (paitsi kun rivia parhaillaan editoidaan).
+            span.addEventListener('click', function () {
+                if (span.isContentEditable) return;
+                avaaRiviPopup(rivi, h);
+            });
             if (!teksti) {
                 span.contentEditable = true;
                 span.addEventListener('keydown', function (e) {
@@ -468,8 +478,6 @@
                     if (!span.innerText.trim() && rivi.parentNode) { rivi.remove(); }
                     autoTallenna(h);
                 });
-            } else {
-                span.addEventListener('click', function () { avaaRiviPopup(rivi, h); });
             }
             rivi.appendChild(span);
             lista.appendChild(rivi);
@@ -524,11 +532,13 @@
         function lataaGoals() {
             ['paula', 'tomi', 'yhteiset'].forEach(function (h) {
                 var tallennettu = localStorage.getItem('goals_' + h);
-                if (tallennettu) {
-                    JSON.parse(tallennettu).forEach(function (teksti) {
-                        lisaaRivi(h, teksti, false);
-                    });
-                }
+                if (!tallennettu) return;
+                try {
+                    var rivit = JSON.parse(tallennettu);
+                    if (Array.isArray(rivit)) {
+                        rivit.forEach(function (teksti) { lisaaRivi(h, teksti, false); });
+                    }
+                } catch (e) { console.error('goals_' + h + ' lataus epaonnistui', e); }
             });
             lataaAsetukset();
             skaalaaFontit();

@@ -155,24 +155,36 @@
             kuvaValitsinAuki = false;
             kuvaKasittelyKaynnissa = true;
 
+            let virheita = 0;
             try {
                 if (tiedostot.length === 0) return;
 
                 for (const tiedosto of tiedostot) {
-                    const dataUrl = await new Promise(function (resolve, reject) {
-                        const reader = new FileReader();
-                        reader.onload = function (e) { resolve(e.target.result); };
-                        reader.onerror = reject;
-                        reader.readAsDataURL(tiedosto);
-                    });
+                    // Kasittele jokainen tiedosto erikseen: yksi viallinen tiedosto
+                    // (lukuvirhe / IndexedDB-kiintio) ei keskeyta koko erää.
+                    try {
+                        const dataUrl = await new Promise(function (resolve, reject) {
+                            const reader = new FileReader();
+                            reader.onload = function (e) { resolve(e.target.result); };
+                            reader.onerror = function () { reject(reader.error || new Error('FileReader')); };
+                            reader.readAsDataURL(tiedosto);
+                        });
 
-                    const uusiId = await tallennaKuvaDB(dataUrl);
-                    kuvaIdt.push(uusiId);
+                        const uusiId = await tallennaKuvaDB(dataUrl);
+                        kuvaIdt.push(uusiId);
+                    } catch (e) {
+                        virheita++;
+                        console.error('Kuvan lisays epaonnistui:', tiedosto && tiedosto.name, e);
+                    }
                 }
 
                 nykyinenKuva = 0;
                 await paivitaKuva();
                 localStorage.setItem('lounas_kuva_indeksi', kuvaIdt.length > 1 ? '1' : '0');
+                if (virheita > 0) {
+                    const laskuri = document.getElementById('kuva-laskuri');
+                    if (laskuri) laskuri.innerText += '  (' + virheita + ' epaonnistui)';
+                }
             } finally {
                 kuvaKasittelyKaynnissa = false;
                 event.target.value = '';

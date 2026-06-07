@@ -2,32 +2,8 @@
  * Säästölaskurin testit - eri määrät, kuukaudet ja vuodet
  */
 
-function parseDate(arr) { return new Date(arr[0], arr[1], arr[2]).getTime(); }
-function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
-
-function calculateSavings(history, start, end) {
-    let total = 0;
-    for (let i = 0; i < history.length; i++) {
-        const entry = history[i];
-        const entryStart = parseDate(entry.alkaen);
-        let entryEnd = (i + 1 < history.length) ? parseDate(history[i+1].alkaen) : end;
-        const activeStart = Math.max(entryStart, start);
-        const activeEnd = Math.min(entryEnd, end);
-        if (activeEnd <= activeStart) continue;
-
-        let current = activeStart;
-        while (current < activeEnd) {
-            const currentDate = new Date(current);
-            const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
-            const segmentEnd = Math.min(monthEnd + 1, activeEnd);
-            const seconds = (segmentEnd - current) / 1000;
-            const days = getDaysInMonth(currentDate);
-            total += seconds * (entry.summa / (days * 24 * 60 * 60));
-            current = segmentEnd;
-        }
-    }
-    return total;
-}
+// Saastolaskenta on keskitetty saastolaskuri.js:aan (sama koodi kuin tuotannossa)
+const { calculateSavings } = require('./saastolaskuri.js');
 
 function test(name, condition) {
     const ok = condition ? '✓' : '✗';

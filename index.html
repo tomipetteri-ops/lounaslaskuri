@@ -63,8 +63,10 @@
         }
         try {
             const tallennettu = localStorage.getItem('lounas_ajat');
-            if (tallennettu) {
-                lounasAjat = JSON.parse(tallennettu);
+            const jasennetty = tallennettu ? JSON.parse(tallennettu) : null;
+            // JSON.parse("null") onnistuu mutta palauttaa null -> vaadi objekti
+            if (jasennetty && typeof jasennetty === 'object') {
+                lounasAjat = jasennetty;
             }
         } catch (e) { console.error("Asetuksien lataus epäonnistui", e); }
 
@@ -130,7 +132,10 @@
             }
         }
         async function handleVisibilityChange() {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
+            // Yrita uudelleen aina kun sivu palaa nakyviin — myos jos ensimmainen
+            // requestWakeLock() epaonnistui (silloin wakeLock jaa nulliksi ja
+            // vanha ehto wakeLock !== null esti palautumisen pysyvasti).
+            if (document.visibilityState === 'visible') {
                 await requestWakeLock();
             }
         }
@@ -173,6 +178,8 @@
                 clearTimeout(ajastin);
                 var dia = DIAT[nykyinenDia];
                 ajastin = setTimeout(() => naytaDia(nykyinenDia + 1), dia.aika * 60 * 1000);
+            } else if (!e.data || typeof e.data !== 'object') {
+                return; // tuntematon string- tai null-viesti (esim. selainlaajennukset)
             } else if (e.data.type === 'diagnostiikka') {
                 // Tallenna lapsi-iframen diagnostiikkadata
                 __diagKooste[e.data.sivu] = e.data.data;
@@ -209,7 +216,7 @@
                 const kuvatIdx = DIAT.findIndex(dia => dia.tiedosto === 'kuvat.html');
                 if (kuvatIdx !== -1) DIAT[kuvatIdx].aika = e.data.kuvat || 1;
 
-                console.log(`Ajat päivitetty: laskuri ${DIAT[laskuriIdx].aika}min, goals ${DIAT[goalsIdx].aika}min, kuvat ${DIAT[kuvatIdx].aika}min`);
+                console.log(`Ajat päivitetty: laskuri ${e.data.laskuri || 1}min, goals ${e.data.goals || 1}min, kuvat ${e.data.kuvat || 1}min`);
             }
         });
 

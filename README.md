@@ -89,9 +89,9 @@ Tiedostorakenne
 
   index.html          Slideshow-kontrolleri (master)
   laskuri.html        Saastolaskuri
+  saastolaskuri.js    Keskitetty saastolaskenta (jaettu laskuri + testit)
   goals.html          Tavoitelistat + ASCII-taide
   kuvat.html          Kuvakaruselli (IndexedDB)
   style.css           Jaetut E-ink-tyylit
   test-laskuri.js     Testit (Node.js)
   test-laskuri.html   Testit (selain)
-  goals_vanha.html    Arkistoitu vanha versio

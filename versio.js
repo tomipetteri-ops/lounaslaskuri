@@ -1,5 +1,5 @@
 // Keskitetty versionumero - muuta VAIN tata tiedostoa
-var VERSIO = 'TESTI v11';
+var VERSIO = 'TESTI v12';
 
 // Renderoi leima automaattisesti oikeaan ylakulmaan
 (function () {
