@@ -6,18 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Diagnostiikka</title>
     <script src="diagnostiikka.js"></script>
+    <link rel="stylesheet" href="style.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* Perusreset + Courier-fontti tulevat style.css:sta. */
         html,
         body {
             height: 100vh;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
             background: #fff;
             color: #000;
@@ -383,14 +378,19 @@
             var sivut = Object.keys(kooste);
             if (parentDiag.ajastimet) sivut.unshift('__parent__');
 
+            // Ratkaise jokaisen sivun datalahde kerran (__parent__ -> parentDiag).
+            var sivuEntryt = sivut.map(function (sivuNimi) {
+                return { nimi: sivuNimi, d: sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi] };
+            });
+
             var ajastinHtml = '';
             var maxKutsut = 1; // valitataan nollajaolla
 
             // Keraa kaikki ajastimet
             var ajastinData = [];
-            for (var i = 0; i < sivut.length; i++) {
-                var sivuNimi = sivut[i];
-                var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
+            for (var i = 0; i < sivuEntryt.length; i++) {
+                var sivuNimi = sivuEntryt[i].nimi;
+                var d = sivuEntryt[i].d;
                 if (!d || !d.ajastimet) continue;
 
                 var intervallit = d.ajastimet.interval || [];
@@ -427,9 +427,9 @@
             // -- Suurimmat kuluttajat (ranking) --
             var kuluttajat = [];
 
-            for (var i = 0; i < sivut.length; i++) {
-                var sivuNimi = sivut[i];
-                var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
+            for (var i = 0; i < sivuEntryt.length; i++) {
+                var sivuNimi = sivuEntryt[i].nimi;
+                var d = sivuEntryt[i].d;
                 if (!d) continue;
                 var nimi = sivuNimi === '__parent__' ? 'index' : sivuNimi.replace('.html', '');
 
@@ -515,9 +515,8 @@
             var observerKutsutYht = 0;
             var piilossaYht = 0;
             var swTilastot = null;
-            for (var i = 0; i < sivut.length; i++) {
-                var sivuNimi = sivut[i];
-                var d = sivuNimi === '__parent__' ? parentDiag : kooste[sivuNimi];
+            for (var i = 0; i < sivuEntryt.length; i++) {
+                var d = sivuEntryt[i].d;
                 if (!d) continue;
                 if (d.fetch) pyyntojaYht += d.fetch.pyyntoja || 0;
                 if (d.tarkkailijat) {
@@ -579,6 +578,7 @@
             }
         };
     </script>
+    <script src="version.js"></script>
     <script src="versio.js"></script>
 </body>
 

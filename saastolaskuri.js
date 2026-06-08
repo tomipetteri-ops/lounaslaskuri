@@ -3,7 +3,6 @@
 // etta Node-testeissa (module.exports). Alustana laskuri.html ja test-laskuri.*.
 (function (root) {
     function parseDate(arr) { return new Date(arr[0], arr[1], arr[2]).getTime(); }
-    function getDaysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(); }
 
     function calculateSavings(history, start, end) {
         var total = 0;
@@ -31,7 +30,7 @@
         return total;
     }
 
-    var api = { parseDate: parseDate, getDaysInMonth: getDaysInMonth, calculateSavings: calculateSavings };
+    var api = { parseDate: parseDate, calculateSavings: calculateSavings };
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
     } else {

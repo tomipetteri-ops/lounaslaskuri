@@ -1,5 +1,5 @@
-// Keskitetty versionumero - muuta VAIN tata tiedostoa
-var VERSIO = 'TESTI v12';
+// Versioleima — numero tulee version.js:sta (var BUILD).
+var VERSIO = 'TESTI v' + BUILD;
 
 // Renderoi leima automaattisesti oikeaan ylakulmaan
 (function () {

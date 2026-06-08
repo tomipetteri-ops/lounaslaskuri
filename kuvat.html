@@ -7,13 +7,6 @@
     <title>Kuvat</title>
     <link rel="stylesheet" href="style.css">
     <script src="navigointi.js"></script>
-    <script>
-        if (localStorage.getItem('lounas_diagnostiikka') === 'true') {
-            var s = document.createElement('script');
-            s.src = 'diagnostiikka.js';
-            document.head.appendChild(s);
-        }
-    </script>
     <style>
         .kuva-info {
             height: 50px;
@@ -34,7 +27,7 @@
 
 <body>
     <div class="kuvat-sivu">
-        <div class="kuva-nakyma kuva-nakymä" id="kuva-nakyma">
+        <div class="kuva-nakymä" id="kuva-nakyma">
             <div class="kuva-placeholder" id="kuva-placeholder" style="display:none;"></div>
             <img id="kuva-img" src="" style="display:none;" alt="Kuva">
         </div>
@@ -123,13 +116,7 @@
         let kuvaValitsinAuki = false;
         let kuvaKasittelyKaynnissa = false;
 
-        function pysaytaDia() {
-            try { window.parent.postMessage('pysayta', '*'); } catch (e) { }
-        }
-
-        function jatkaDia() {
-            try { window.parent.postMessage('jatka', '*'); } catch (e) { }
-        }
+        // pysaytaDia()/jatkaDia() keskitetty navigointi.js:aan (window.*)
 
         function avaaKuvaValitsin() {
             const input = document.getElementById('kuva-input-lisaa');
@@ -246,6 +233,7 @@
             }
         };
     </script>
+    <script src="version.js"></script>
     <script src="versio.js"></script>
 </body>
 

@@ -83,24 +83,6 @@ body {
     height: 100%;
     width: 100%;
 }
-.kuva-placeholder label {
-    font-size: clamp(1rem, 3vw, 1.5rem);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: bold;
-    cursor: pointer;
-    border: 3px solid black;
-    padding: 15px 30px;
-}
-#kuva-input { display: none; }
-.kuva-info {
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 25px;
-    font-size: 0.85rem;
-    border-top: 2px solid black;
-}
-.kuva-info span, .kuva-info label { cursor: pointer; }
+/* .kuva-placeholder label, #kuva-input ja .kuva-info siirretty/poistettu:
+   .kuva-info elaa kuvat.html:n inline-tyylissa (ainoa kayttaja), muut kuolleita. */
 

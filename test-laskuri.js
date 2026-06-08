@@ -1,13 +1,13 @@
 /**
- * Säästölaskurin testit - eri määrät, kuukaudet ja vuodet
+ * Säästölaskurin testit (Node) — yhtasuuruustapaukset jaettu testitapaukset.js:aan,
+ * nykyhetkeen sidottu data tassa harnessissa.
  */
 
-// Saastolaskenta on keskitetty saastolaskuri.js:aan (sama koodi kuin tuotannossa)
 const { calculateSavings } = require('./saastolaskuri.js');
+const tapaukset = require('./testitapaukset.js');
 
 function test(name, condition) {
-    const ok = condition ? '✓' : '✗';
-    console.log(`  ${ok} ${name}`);
+    console.log(`  ${condition ? '✓' : '✗'} ${name}`);
     return condition;
 }
 
@@ -15,69 +15,16 @@ let passed = 0, failed = 0;
 
 console.log('\n=== Säästölaskurin testit ===\n');
 
-// 1. Koko kuukausi – yksi määrä
-console.log('1. Koko kuukausi (eri määrät):');
-const tammiAlku = new Date(2026, 0, 1).getTime();
-const tammiLoppu = new Date(2026, 0, 31, 23, 59, 59, 999).getTime() + 1;
-for (const summa of [100, 410, 870, 1000]) {
-    const h = [{ alkaen: [2026, 0, 1], summa }];
-    const t = calculateSavings(h, tammiAlku, tammiLoppu);
-    const odotus = summa;
-    const ok = Math.abs(t - odotus) < 0.01;
-    if (test(`${summa} € tammikuussa → ${t.toFixed(2)} € (odotus ${odotus})`, ok)) passed++; else failed++;
-}
+// Jaetut yhtasuuruustapaukset
+console.log('Yhtasuuruustapaukset (testitapaukset.js):');
+tapaukset.forEach(function (t) {
+    const tulos = calculateSavings(t.history, t.start, t.end);
+    const ok = Math.abs(tulos - t.odotus) < t.tol;
+    if (test(`${t.nimi} → ${tulos.toFixed(2)} € (odotus ${t.odotus.toFixed(2)})`, ok)) passed++; else failed++;
+});
 
-// 2. Puolikas kuukausi
-console.log('\n2. Puolikas kuukausi (15 päivää):');
-const tammi15 = new Date(2026, 0, 15, 23, 59, 59, 999).getTime() + 1;
-const h410 = [{ alkaen: [2026, 0, 1], summa: 410 }];
-const puolikas = calculateSavings(h410, tammiAlku, tammi15);
-const odotus15 = 410 * (15 / 31);
-if (test(`410 € × 15/31 päivää → ${puolikas.toFixed(2)} € (odotus ~${odotus15.toFixed(2)})`, Math.abs(puolikas - odotus15) < 0.5)) passed++; else failed++;
-
-// 3. Helmikuu (28 päivää) vs karkausvuosi (29 päivää)
-console.log('\n3. Helmikuu – 28 vs 29 päivää:');
-const helmi2025 = new Date(2025, 1, 1).getTime();
-const helmi2025Loppu = new Date(2025, 1, 28, 23, 59, 59, 999).getTime() + 1;
-const helmi2024 = new Date(2024, 1, 1).getTime();
-const helmi2024Loppu = new Date(2024, 1, 29, 23, 59, 59, 999).getTime() + 1;
-const h100 = [{ alkaen: [2025, 1, 1], summa: 100 }];
-const h100_24 = [{ alkaen: [2024, 1, 1], summa: 100 }];
-const t25 = calculateSavings(h100, helmi2025, helmi2025Loppu);
-const t24 = calculateSavings(h100_24, helmi2024, helmi2024Loppu);
-if (test(`2025 helmikuu (28 pv): ${t25.toFixed(2)} €`, Math.abs(t25 - 100) < 0.01)) passed++; else failed++;
-if (test(`2024 helmikuu (29 pv, karkaus): ${t24.toFixed(2)} €`, Math.abs(t24 - 100) < 0.01)) passed++; else failed++;
-
-// 4. Useampi kuukausi – eri vuodet
-console.log('\n4. Useampi kuukausi (tammi–maalis 2026):');
-const maalisLoppu = new Date(2026, 2, 31, 23, 59, 59, 999).getTime() + 1;
-const kolmeKk = calculateSavings(h410, tammiAlku, maalisLoppu);
-const odotus3kk = 410 * 3; // 31+28+31 päivää, jokaisesta koko summa
-if (test(`410 € × 3 kk → ${kolmeKk.toFixed(2)} € (odotus 1230)`, Math.abs(kolmeKk - 1230) < 0.5)) passed++; else failed++;
-
-// 5. History-vaihto kesken kuukauden
-console.log('\n5. History-vaihto kesken kuukauden:');
-const historyVaihto = [
-    { alkaen: [2026, 0, 1], summa: 200 },
-    { alkaen: [2026, 0, 16], summa: 400 }
-];
-const tammiKoko = new Date(2026, 0, 31, 23, 59, 59, 999).getTime() + 1;
-const vaihto = calculateSavings(historyVaihto, tammiAlku, tammiKoko);
-const odotusV = 200 * (15/31) + 400 * (16/31); // 15 pv @ 200, 16 pv @ 400
-if (test(`200€ 1–15, 400€ 16–31 → ${vaihto.toFixed(2)} € (odotus ~${odotusV.toFixed(2)})`, Math.abs(vaihto - odotusV) < 1)) passed++; else failed++;
-
-// 6. Eri vuosi – 2024 vs 2025 vs 2026
-console.log('\n6. Eri vuodet (koko tammikuu):');
-for (const vuosi of [2024, 2025, 2026]) {
-    const alku = new Date(vuosi, 0, 1).getTime();
-    const loppu = new Date(vuosi, 0, 31, 23, 59, 59, 999).getTime() + 1;
-    const h = [{ alkaen: [vuosi, 0, 1], summa: 500 }];
-    const t = calculateSavings(h, alku, loppu);
-    if (test(`${vuosi} tammikuu 500 € → ${t.toFixed(2)} €`, Math.abs(t - 500) < 0.01)) passed++; else failed++;
-}
-
-// 7. Nykyinen data – monirivinen historia
-console.log('\n7. Nykyinen data (Paula 589.26/629.04/365.08, Tomi 957.51/757.18/491.89):');
+// Nykyinen data — monirivinen historia, tulos > 0
+console.log('\nNykyinen data (Paula 589.26/629.04/365.08, Tomi 957.51/757.18/491.89):');
 const nyt = new Date();
 const kkAlku = new Date(nyt.getFullYear(), nyt.getMonth(), 1).getTime();
 const vuosiAlku = new Date(nyt.getFullYear(), 0, 1).getTime();
@@ -95,8 +42,8 @@ const pM = calculateSavings(paulaH, kkAlku, nyt.getTime());
 const tM = calculateSavings(tomiH, kkAlku, nyt.getTime());
 const pY = calculateSavings(paulaH, vuosiAlku, nyt.getTime());
 const tY = calculateSavings(tomiH, vuosiAlku, nyt.getTime());
-if (test(`Kuukausi yhteensä: Paula ${pM.toFixed(2)} + Tomi ${tM.toFixed(2)} = ${(pM+tM).toFixed(2)} €`, (pM + tM) > 0)) passed++; else failed++;
-if (test(`Vuosi yhteensä: ${(pY+tY).toFixed(2)} €`, (pY + tY) > 0)) passed++; else failed++;
+if (test(`Kuukausi yhteensä: Paula ${pM.toFixed(2)} + Tomi ${tM.toFixed(2)} = ${(pM + tM).toFixed(2)} €`, (pM + tM) > 0)) passed++; else failed++;
+if (test(`Vuosi yhteensä: ${(pY + tY).toFixed(2)} €`, (pY + tY) > 0)) passed++; else failed++;
 
 console.log('\n=== Yhteenveto ===');
 console.log(`Läpäisty: ${passed}, epäonnistunut: ${failed}`);

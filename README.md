@@ -92,6 +92,11 @@ Tiedostorakenne
   saastolaskuri.js    Keskitetty saastolaskenta (jaettu laskuri + testit)
   goals.html          Tavoitelistat + ASCII-taide
   kuvat.html          Kuvakaruselli (IndexedDB)
+  navigointi.js       Jaettu: tap-navigointi, dia-ohjaus, diag-lataus, fullscreen
+  version.js          Keskitetty versionumero (var BUILD; sivut + sw.js)
+  versio.js           Renderoi versioleiman BUILDista
+  sw.js               Service worker (offline-cache, CACHE_NAME = BUILD)
   style.css           Jaetut E-ink-tyylit
   test-laskuri.js     Testit (Node.js)
   test-laskuri.html   Testit (selain)
+  testitapaukset.js   Jaetut testitapaukset (Node + selain)

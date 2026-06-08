@@ -6,25 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Goals</title>
     <script src="navigointi.js"></script>
-    <script>
-        if (localStorage.getItem('lounas_diagnostiikka') === 'true') {
-            var s = document.createElement('script');
-            s.src = 'diagnostiikka.js';
-            document.head.appendChild(s);
-        }
-    </script>
+    <link rel="stylesheet" href="style.css">
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
+        /* Perusreset + Courier-fontti tulevat style.css:sta. */
         html,
         body {
-            margin: 0;
-            padding: 0;
             height: 100vh;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
         }
 
         body {
@@ -403,15 +391,7 @@
             }
         }
 
-        function kaynnistaDia() {
-            try { window.parent.postMessage('kaynnista', '*'); } catch (e) { }
-        }
-        function pysaytaDia() {
-            try { window.parent.postMessage('pysayta', '*'); } catch (e) { }
-        }
-        function jatkaDia() {
-            try { window.parent.postMessage('jatka', '*'); } catch (e) { }
-        }
+        // kaynnistaDia()/pysaytaDia()/jatkaDia() keskitetty navigointi.js:aan (window.*)
 
         function autoTallenna(h) {
             var lista = document.getElementById(h + '-lista');
@@ -558,21 +538,33 @@
             container.style.fontSize = minFont + 'px';
         }
 
+        // Debounce: yksi rAF-kehys per burst, ettei jokainen mutaatio/resize aja
+        // skaalaaFontitin reflow-silmukkaa erikseen (esim. editoinnin nappainvirta).
+        var skaalausPyydetty = false;
+        function skaalaaFontitDebounced() {
+            if (skaalausPyydetty) return;
+            skaalausPyydetty = true;
+            requestAnimationFrame(function () {
+                skaalausPyydetty = false;
+                skaalaaFontit();
+            });
+        }
+
         window.onload = function () {
             lataaGoals();
-            skaalaaFontit();
             var c = document.querySelector('.goals-container');
             if (c && typeof ResizeObserver !== 'undefined') {
-                new ResizeObserver(skaalaaFontit).observe(c);
+                new ResizeObserver(skaalaaFontitDebounced).observe(c);
             }
             ['paula', 'tomi', 'yhteiset'].forEach(function (h) {
                 var lista = document.getElementById(h + '-lista');
                 if (lista && typeof MutationObserver !== 'undefined') {
-                    new MutationObserver(skaalaaFontit).observe(lista, { childList: true, subtree: true, characterData: true });
+                    new MutationObserver(skaalaaFontitDebounced).observe(lista, { childList: true, subtree: true, characterData: true });
                 }
             });
         };
     </script>
+    <script src="version.js"></script>
     <script src="versio.js"></script>
 </body>
 

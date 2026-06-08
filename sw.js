@@ -1,5 +1,5 @@
-var CACHE_VERSION = 23;
-var CACHE_NAME = 'lounaslaskuri-v' + CACHE_VERSION;
+importScripts('version.js'); // tuo var BUILD — yksi versiolahde (myos sivuilla)
+var CACHE_NAME = 'lounaslaskuri-v' + BUILD;
 var FETCH_STRATEGIA = 'cache-first';
 var URLS = [
     './',
@@ -9,6 +9,7 @@ var URLS = [
     './kuvat.html',
     './style.css',
     './navigointi.js',
+    './version.js',
     './versio.js',
     './saastolaskuri.js',
     './diagnostiikka.html',
@@ -51,7 +52,7 @@ self.addEventListener('activate', function (e) {
 });
 
 // cache-first: vastaa cachesta, EI revalidoi taustalla.
-// Paivitykset tulevat vain CACHE_VERSION-bumpilla (uusi SW install).
+// Paivitykset tulevat vain BUILD-bumpilla version.js:ssa (uusi SW install).
 // Poistaa ~32 turhaa WiFi-heratysta/min jotka stale-while-revalidate aiheutti.
 self.addEventListener('fetch', function (e) {
     if (e.request.method !== 'GET') return;
@@ -66,7 +67,7 @@ self.addEventListener('fetch', function (e) {
                 tilastot.verkkopyynnot++;
                 // Tallenna vain onnistuneet, samasta originista tulevat vastaukset.
                 // Muuten ohimeneva 404/500 (tai opaque-vastaus) jaisi valimuistiin
-                // seuraavaan CACHE_VERSION-bumppiin asti.
+                // seuraavaan BUILD-bumppiin asti.
                 if (response && response.ok && response.type === 'basic') {
                     var clone = response.clone();
                     caches.open(CACHE_NAME).then(function (cache) {
@@ -99,7 +100,7 @@ self.addEventListener('message', function (e) {
             verkkoVirheet: tilastot.verkkoVirheet,
             alkanut: tilastot.alkanut,
             strategia: FETCH_STRATEGIA,
-            cacheVersion: CACHE_VERSION
+            cacheVersion: BUILD
         };
         if (e.ports && e.ports[0]) {
             e.ports[0].postMessage(vastaus);
